@@ -1,0 +1,42 @@
+# Original reference folders and abandoned local binary analysis
+/Shell-main/
+/ReShell-Releases-main/
+/analysis/
+
+# Build outputs
+*.d
+*.slo
+*.lo
+*.o
+*.obj
+*.gch
+*.pch
+*.so
+*.dylib
+*.dll
+*.lai
+*.la
+*.a
+*.exe
+*.out
+*.app
+*.pdb
+*.pgd
+*.exp
+*.wixpdb
+
+# IDE and restored dependencies
+.DS_Store
+.vs/
+*.vcxproj.user
+*.vcxitems.user
+/src/exe/obj/
+/src/dll/obj/
+/src/setup/ca/obj/
+/src/setup/wix/obj/
+/src/packages/
+/src/tests/bin/
+/src/tests/obj/
+
+# Keep bundled native .lib dependencies and NSS configuration tracked.
+# Do not ignore src/bin/ or src/shared/Library/.

@@ -1,0 +1,87 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        # configuration: [debug, release]
+        configuration: [release]
+        platform: [x64, x86, arm64]
+      fail-fast: false
+
+    env:
+      SOLUTION_FILE_PATH: src/Shell.sln
+      BUILD_CONFIGURATION: ${{matrix.configuration}}
+      BUILD_PLATFORM: ${{matrix.platform}}
+    runs-on: windows-2022
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Restore NuGet packages
+      uses: NuGet/setup-nuget@v2
+
+    - name: Restore native packages
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.SOLUTION_FILE_PATH}} -NonInteractive
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m '/t:dll;exe' /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Build and run selection tests
+      if: matrix.platform == 'x64'
+      shell: pwsh
+      run: |
+        msbuild .\src\tests\SelectionTests.vcxproj /p:Configuration=release /p:Platform=x64
+        if ($LASTEXITCODE -ne 0) { throw "Selection test build failed" }
+        & .\src\tests\bin\selection-tests.exe
+        if ($LASTEXITCODE -ne 0) { throw "Selection tests failed" }
+
+    - name: Validate portable package
+      shell: pwsh
+      run: |
+        foreach ($path in @(
+          '.\src\bin\shell.dll',
+          '.\src\bin\shell.exe',
+          '.\src\bin\shell.nss',
+          '.\src\bin\imports\taskbar.nss',
+          '.\src\bin\imports\lang\en.nss'
+        )) {
+          if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "Missing package file: $path"
+          }
+        }
+        Copy-Item -LiteralPath .\LICENSE -Destination .\src\bin\LICENSE
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: MyShell-${{matrix.platform}}
+        path: |
+          src/bin/**
+          !src/bin/*.lib
+          !src/bin/*.exp
+          !src/bin/*.pdb
+          !src/bin/*.pgd
+          !src/bin/*.wixpdb
+          !src/bin/ca.dll
+        if-no-files-found: error
+        retention-days: 0
+        compression-level: 6
+        overwrite: false
+        include-hidden-files: false
