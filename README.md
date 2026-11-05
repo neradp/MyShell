@@ -206,6 +206,30 @@ behavior. Validate the chosen implementation in the actual target applications.
 ReShell can optionally serve as a behavioral reference in an agreed test
 environment; it is not a source dependency or a prerequisite for MyShell.
 
+### Current third-party runtime blocker
+
+The x64 build and selection tests passed in GitHub run
+[42124363857](https://github.com/neradp/MyShell/actions/runs/42124363857).
+However, the user reports native, unmodified menus in Everything and Total
+Commander after a full PC restart. The installed DLL matches the artifact hash.
+Read-only inspection of both host processes confirms that the
+`NtUserTrackPopupMenuEx` import points into MyShell.
+
+This narrows the issue to context capture/menu initialization, not a missing DLL
+or absent popup hook. It does not establish the precise failure yet. Diagnostics
+now log helper queries, premature helper destruction, selection consumption,
+window-classification rejection, and configuration exclusion. No file names or
+selected paths are included. After rebuilding, reproduce one file-result menu
+per host and inspect `shell.log` next to the registered DLL. In particular,
+`Selection helper released before popup capture` would establish a lifetime
+problem that the direct handler tests do not cover.
+
+The user's active configuration has no Explorer-only exclusion. The bundled
+starter configuration does, so other installations must deliberately allow
+the desired host processes. EverythingToolbar uses native `IContextMenu` and
+`TrackPopupMenuEx` in its published source, but actual compatibility has not
+been verified. Do not treat passing unit tests as proof of host integration.
+
 ## 4. Windows 11-style toolbar in the classic menu
 
 The requested feature is a custom icon toolbar, not the native modern menu.

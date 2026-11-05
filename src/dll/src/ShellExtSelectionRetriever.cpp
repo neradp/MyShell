@@ -17,12 +17,16 @@ ShellExtSelectionRetriever::ShellExtSelectionRetriever()
 ShellExtSelectionRetriever::~ShellExtSelectionRetriever()
 {
 	::AcquireSRWLockExclusive(&_lock);
+	bool pending = _menu != nullptr;
 	auto link = &_handlers;
 	while(*link && *link != this)
 		link = &(*link)->_next;
 	if(*link)
 		*link = _next;
 	::ReleaseSRWLockExclusive(&_lock);
+	if(pending)
+		Logger::Instance().warning(L"Selection helper released before popup capture (process %lu, thread %lu).",
+			::GetCurrentProcessId(), _thread);
 	_selection.items.Reset();
 	_selection.parent.Reset();
 	::InterlockedDecrement(&g_cDllRef);
@@ -141,6 +145,9 @@ HRESULT STDMETHODCALLTYPE ShellExtSelectionRetriever::QueryContextMenu(HMENU men
 		_thread = ::GetCurrentThreadId();
 	}
 	::ReleaseSRWLockExclusive(&_lock);
+	Logger::Instance().info(L"Selection helper queried (process %lu, thread %lu, menu %p, flags 0x%08X, background %d, items %d).",
+		::GetCurrentProcessId(), ::GetCurrentThreadId(), menu, flags,
+		_selection.background, _selection.items.Get() != nullptr);
 	// The handler captures context only; it never adds a user-visible command.
 	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, 0);
 }
@@ -164,6 +171,8 @@ bool ShellExtSelectionRetriever::TakeSelection(HMENU menu, ShellSelectionContext
 		return false;
 	selection = handler->_selection;
 	handler->Release();
+	Logger::Instance().info(L"Selection captured (process %lu, thread %lu, menu %p).",
+		::GetCurrentProcessId(), ::GetCurrentThreadId(), menu);
 	return true;
 }
 

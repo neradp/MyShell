@@ -4356,8 +4356,14 @@ namespace Nilesoft
 
 				ShellSelectionContext shellSelection;
 				bool hasShellSelection = ShellExtSelectionRetriever::TakeSelection(_hMenu_original, shellSelection);
+				if(!Selected.loader.explorer && !hasShellSelection)
+					_log.warning(L"No selection helper matched popup (process %s, thread %lu, menu %p).",
+						initializer->process.name.c_str(), ::GetCurrentThreadId(), _hMenu_original);
 				if(!Selected.QueryShellWindow() && (!hasShellSelection || Selected.loader.explorer))
 				{
+					if(!Selected.loader.explorer)
+						_log.warning(L"Third-party popup rejected by window classification (process %s, owner %p).",
+							initializer->process.name.c_str(), hwnd.owner);
 					__trace(L"QueryShellWindow");
 					return false;
 				}
@@ -4431,7 +4437,12 @@ namespace Nilesoft
 				}
 
 				if(is_excluded())
+				{
+					if(!Selected.loader.explorer)
+						_log.warning(L"Third-party popup excluded by configuration (process %s).",
+							initializer->process.name.c_str());
 					return false;
+				}
 
 				hInstance = _window.instance();
 
