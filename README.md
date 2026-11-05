@@ -4,10 +4,11 @@ An analysis-led continuation of [Nilesoft Shell](https://github.com/moudey/Shell
 for Windows 11 context menus, preserving existing NSS configurations and
 compatibility with StartAllBack.
 
-**Status: implementation awaiting compilation, November 5, 2026.** An adapted
+**Status: implementation awaiting passing tests, November 5, 2026.** An adapted
 implementation of PR #797, native selection tests, and a GitHub Actions workflow
-are present. No successful build, DLL registration, or Explorer restart has been
-performed. The icon toolbar is deferred until the selection changes pass validation.
+are present. The x64 DLL and manager compiled successfully on GitHub; the
+selection test failed at runtime. No DLL registration or Explorer restart has
+been performed. The icon toolbar is deferred until the selection changes pass validation.
 ReShell has been inspected statically. A Ghidra decompilation attempt was stopped
 at the user's request; no completed pseudocode comparison is available.
 Static findings must not be confused with runtime compatibility tests.
@@ -298,7 +299,15 @@ package files. It builds only x64 and runs the native selection tests on x64.
 The first GitHub build failed with a WRL namespace ambiguity and MSVC C2712
 (allocation inside an SEH-protected export). These were corrected by qualifying
 `Nilesoft::Windows` and moving factory allocation into a separate function.
-Compilation and test success still require a new CI run.
+The [second GitHub run](https://github.com/neradp/MyShell/actions/runs/42123270549)
+compiled both `shell.dll` and `shell.exe`, and compiled the tests with zero errors
+and warnings. Test execution failed because its `SHCreateDataObject` fixture
+passed an absolute PIDL as a parent-relative child. The test now supplies the
+parent PIDL and final child identifier, checks the selected object's identity
+and parent, and reports HRESULT values. A local Windows API probe reproduced the
+original `0x80040064` failure and verified successful array/item/parent retrieval
+with the corrected fixture. The complete C++ tests and artifact packaging still
+require a new CI run; GUI compatibility remains unverified.
 
 ### Proposed workflow
 

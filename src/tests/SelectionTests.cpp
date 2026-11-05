@@ -2,6 +2,8 @@
 #include <shlobj.h>
 #include <wrl/client.h>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include "Include/ClassFactory.h"
@@ -18,7 +20,13 @@ static void check(bool value, const char *message)
 
 static void succeeded(HRESULT value, const char *message)
 {
-	check(SUCCEEDED(value), message);
+	if(FAILED(value))
+	{
+		std::ostringstream error;
+		error << message << " (HRESULT 0x" << std::hex << std::uppercase
+			<< std::setw(8) << std::setfill('0') << static_cast<unsigned long>(value) << ')';
+		throw std::runtime_error(error.str());
+	}
 }
 
 struct Popup
@@ -107,9 +115,13 @@ static void runTests()
 		"Compare snapshots");
 	check(comparison != 0, "Different handlers must retain different contexts");
 
-	PCUITEMID_CHILD child = documents.value;
+	Pidl documentsParent;
+	documentsParent.value = ::ILCloneFull(documents.value);
+	check(documentsParent.value && ::ILRemoveLastID(documentsParent.value), "Create selection parent PIDL");
+	PCUITEMID_CHILD child = ::ILFindLastID(documents.value);
+	check(child && child->mkid.cb != 0, "Create parent-relative selection PIDL");
 	ComPtr<IDataObject> data;
-	succeeded(::SHCreateDataObject(nullptr, 1, &child, nullptr, IID_PPV_ARGS(data.GetAddressOf())),
+	succeeded(::SHCreateDataObject(documentsParent.value, 1, &child, nullptr, IID_PPV_ARGS(data.GetAddressOf())),
 		"Create real Shell data object");
 	succeeded(firstInit->Initialize(nullptr, data.Get(), nullptr), "Initialize selected object");
 	succeeded(first->QueryContextMenu(firstMenu.handle, 0, 100, 100, 0), "Selection association");
@@ -118,6 +130,21 @@ static void runTests()
 	check(!selection.background && selection.items, "Selection snapshot");
 	succeeded(selection.items->GetCount(&count), "Selection count");
 	check(count == 1, "Selection must contain exactly one item");
+	ComPtr<IShellItem> selectedItem;
+	ComPtr<IShellItem> expectedItem;
+	ComPtr<IShellItem> expectedParent;
+	succeeded(selection.items->GetItemAt(0, selectedItem.GetAddressOf()), "Read selected item");
+	succeeded(::SHCreateItemFromIDList(documents.value, IID_PPV_ARGS(expectedItem.GetAddressOf())),
+		"Create expected selected item");
+	succeeded(::SHCreateItemFromIDList(documentsParent.value, IID_PPV_ARGS(expectedParent.GetAddressOf())),
+		"Create expected selection parent");
+	succeeded(selectedItem->Compare(expectedItem.Get(), SICHINT_CANONICAL, &comparison),
+		"Compare selected item");
+	check(comparison == 0, "Selection must preserve the original object");
+	check(selection.parent.Get() != nullptr, "Selection must retain its parent");
+	succeeded(selection.parent->Compare(expectedParent.Get(), SICHINT_CANONICAL, &comparison),
+		"Compare selection parent");
+	check(comparison == 0, "Selection must preserve the correct parent");
 
 	succeeded(first->QueryContextMenu(firstMenu.handle, 0, 100, 100, 0), "Associate before failed reinit");
 	check(firstInit->Initialize(nullptr, nullptr, nullptr) == E_INVALIDARG, "Failed reinit");
