@@ -3,6 +3,19 @@
 #include "Include/ShellExtSelectionRetriever.h"
 #include <new>
 
+HRESULT ClassFactory::CreateClassObject(REFIID riid, void **ppv)
+{
+	if(!ppv)
+		return E_POINTER;
+	*ppv = nullptr;
+	auto factory = new(std::nothrow) ClassFactory;
+	if(!factory)
+		return E_OUTOFMEMORY;
+	auto result = factory->QueryInterface(riid, ppv);
+	factory->Release();
+	return result;
+}
+
 ClassFactory::ClassFactory()
 {
 	::InterlockedIncrement(&g_cDllRef);

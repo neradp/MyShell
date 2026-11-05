@@ -4,7 +4,6 @@
 #include "RegistryConfig.h"
 #include <UIAutomation.h>
 #include "Include/ClassFactory.h"
-#include <new>
 using namespace Nilesoft::Shell;
 using namespace Diagnostics;
 
@@ -1176,11 +1175,7 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 		{
 			_loader.contextmenuhandler = true;
 			Selections::point.GetCursorPos();
-			auto factory = new(std::nothrow) ClassFactory;
-			if(!factory)
-				return E_OUTOFMEMORY;
-			hr = factory->QueryInterface(riid, ppv);
-			factory->Release();
+			hr = ClassFactory::CreateClassObject(riid, ppv);
 		}
 
 		if(!_initializer.Status.Loaded)

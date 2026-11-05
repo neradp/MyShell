@@ -294,13 +294,16 @@ NSS/language import tree are tracked.
 
 The active [build.yml](.github/workflows/build.yml) uses relative output paths,
 builds DLL/manager targets without MSI, supports manual dispatch, and checks
-package files. It retains x64/x86/ARM64 builds and runs the native selection tests
-on x64. Start by examining the x64 job. No GitHub repository or CI run exists yet.
+package files. It builds only x64 and runs the native selection tests on x64.
+The first GitHub build failed with a WRL namespace ambiguity and MSVC C2712
+(allocation inside an SEH-protected export). These were corrected by qualifying
+`Nilesoft::Windows` and moving factory allocation into a separate function.
+Compilation and test success still require a new CI run.
 
 ### Proposed workflow
 
 The following is a simplified x64-only example. The active workflow additionally
-builds the architecture matrix and runs selection tests. Neither has been verified
+runs selection tests. Neither has been verified
 by a successful CI run:
 
 ```yaml

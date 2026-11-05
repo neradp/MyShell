@@ -8,6 +8,7 @@ class ClassFactory final : public IClassFactory
 {
 public:
 	ClassFactory();
+	static HRESULT CreateClassObject(REFIID riid, void **ppv);
 	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppv) override;
 	ULONG STDMETHODCALLTYPE AddRef() override;
 	ULONG STDMETHODCALLTYPE Release() override;

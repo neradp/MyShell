@@ -13,17 +13,10 @@ permissions:
 jobs:
   build:
 
-    strategy:
-      matrix:
-        # configuration: [debug, release]
-        configuration: [release]
-        platform: [x64, x86, arm64]
-      fail-fast: false
-
     env:
       SOLUTION_FILE_PATH: src/Shell.sln
-      BUILD_CONFIGURATION: ${{matrix.configuration}}
-      BUILD_PLATFORM: ${{matrix.platform}}
+      BUILD_CONFIGURATION: release
+      BUILD_PLATFORM: x64
     runs-on: windows-2022
 
     steps:
@@ -44,7 +37,6 @@ jobs:
       run: msbuild /m '/t:dll;exe' /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build and run selection tests
-      if: matrix.platform == 'x64'
       shell: pwsh
       run: |
         msbuild .\src\tests\SelectionTests.vcxproj /p:Configuration=release /p:Platform=x64
@@ -71,7 +63,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: MyShell-${{matrix.platform}}
+        name: MyShell-x64
         path: |
           src/bin/**
           !src/bin/*.lib

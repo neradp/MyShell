@@ -134,7 +134,7 @@ struct DWM
 
 inline HMENU GET_HMENU(HWND hWnd) { return SendMSG<HMENU>(hWnd, MN_GETHMENU, 0, 0); }
 
-auto ver = &Windows::Version::Instance();
+auto ver = &Nilesoft::Windows::Version::Instance();
 
 #pragma endregion
 

@@ -36,7 +36,12 @@ struct Pidl
 static void runTests()
 {
 	ComPtr<IClassFactory> factory;
-	factory.Attach(new ClassFactory);
+	check(ClassFactory::CreateClassObject(IID_IClassFactory, nullptr) == E_POINTER,
+		"Null exported factory output");
+	void *unsupportedFactory = reinterpret_cast<void *>(1);
+	check(ClassFactory::CreateClassObject(IID_IStream, &unsupportedFactory) == E_NOINTERFACE &&
+		!unsupportedFactory && g_cDllRef == 0, "Failed factory query must release the factory");
+	succeeded(ClassFactory::CreateClassObject(IID_PPV_ARGS(factory.GetAddressOf())), "Create class factory");
 	check(g_cDllRef == 1, "Factory must hold a DLL reference");
 	check(factory->QueryInterface(IID_IUnknown, nullptr) == E_POINTER, "Null QI output");
 	void *unsupported = factory.Get();
