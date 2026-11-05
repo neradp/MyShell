@@ -135,11 +135,13 @@ HRESULT STDMETHODCALLTYPE ShellExtSelectionRetriever::Initialize(PCIDLIST_ABSOLU
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE ShellExtSelectionRetriever::QueryContextMenu(HMENU menu, UINT, UINT, UINT, UINT flags)
+HRESULT STDMETHODCALLTYPE ShellExtSelectionRetriever::QueryContextMenu(HMENU menu, UINT, UINT first, UINT last, UINT flags)
 {
 	::AcquireSRWLockExclusive(&_lock);
 	_menu = nullptr;
-	if(!(flags & CMF_DEFAULTONLY) && (_selection.items || _selection.parent))
+	bool capture = menu && first <= last && !(flags & CMF_DEFAULTONLY) &&
+		(_selection.items || _selection.parent);
+	if(capture)
 	{
 		_menu = menu;
 		_thread = ::GetCurrentThreadId();
@@ -148,8 +150,9 @@ HRESULT STDMETHODCALLTYPE ShellExtSelectionRetriever::QueryContextMenu(HMENU men
 	Logger::Instance().info(L"Selection helper queried (process %lu, thread %lu, menu %p, flags 0x%08X, background %d, items %d).",
 		::GetCurrentProcessId(), ::GetCurrentThreadId(), menu, flags,
 		_selection.background, _selection.items.Get() != nullptr);
-	// The handler captures context only; it never adds a user-visible command.
-	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, 0);
+	// Shell aggregators release zero-ID handlers before TrackPopupMenu.
+	// Reserve an internal ID to retain the handler without adding a visible item.
+	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, capture ? 1 : 0);
 }
 
 bool ShellExtSelectionRetriever::TakeSelection(HMENU menu, ShellSelectionContext &selection)

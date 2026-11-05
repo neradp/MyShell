@@ -215,14 +215,18 @@ Commander after a full PC restart. The installed DLL matches the artifact hash.
 Read-only inspection of both host processes confirms that the
 `NtUserTrackPopupMenuEx` import points into MyShell.
 
-This narrows the issue to context capture/menu initialization, not a missing DLL
-or absent popup hook. It does not establish the precise failure yet. Diagnostics
+Runtime diagnostics now establish that Total Commander releases the zero-ID
+helper immediately after `QueryContextMenu`, before the popup consumes its
+selection. The handler now reserves one internal command ID without adding a
+visible item, so the Shell aggregator can retain its command mapping. This
+retention change requires verification in the actual hosts; compilation alone
+does not prove that their lifetime behavior is fixed. Diagnostics
 now log helper queries, premature helper destruction, selection consumption,
 window-classification rejection, and configuration exclusion. No file names or
 selected paths are included. After rebuilding, reproduce one file-result menu
 per host and inspect `shell.log` next to the registered DLL. In particular,
-`Selection helper released before popup capture` would establish a lifetime
-problem that the direct handler tests do not cover.
+`Selection helper released before popup capture` identifies the lifetime
+problem that the direct handler tests originally did not cover.
 
 The user's active configuration has no Explorer-only exclusion. The bundled
 starter configuration does, so other installations must deliberately allow

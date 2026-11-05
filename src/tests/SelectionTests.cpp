@@ -81,7 +81,8 @@ static void runTests()
 	succeeded(::SHGetKnownFolderIDList(FOLDERID_Documents, 0, nullptr, &documents.value), "Documents PIDL");
 	succeeded(firstInit->Initialize(desktop.value, nullptr, nullptr), "Initialize background");
 	auto result = first->QueryContextMenu(firstMenu.handle, 0, 100, 100, 0);
-	check(result == MAKE_HRESULT(SEVERITY_SUCCESS, 0, 0), "Handler must reserve zero IDs");
+	check(result == MAKE_HRESULT(SEVERITY_SUCCESS, 0, 1),
+		"Handler must reserve an ID so Shell hosts retain it until popup capture");
 	check(::GetMenuItemCount(firstMenu.handle) == 0, "No visible placeholder");
 	check(!ShellExtSelectionRetriever::TakeSelection(secondMenu.handle, selection), "Menu isolation");
 	bool wrongThreadCaptured = false;
@@ -96,7 +97,8 @@ static void runTests()
 	check(selection.background && selection.parent && !selection.items, "Background snapshot");
 	check(!ShellExtSelectionRetriever::TakeSelection(firstMenu.handle, selection), "One-shot capture");
 	selection = {};
-	succeeded(first->QueryContextMenu(firstMenu.handle, 0, 100, 100, CMF_DEFAULTONLY), "Default-only query");
+	check(first->QueryContextMenu(firstMenu.handle, 0, 100, 100, CMF_DEFAULTONLY) ==
+		MAKE_HRESULT(SEVERITY_SUCCESS, 0, 0), "Default-only query must reserve no IDs");
 	check(!ShellExtSelectionRetriever::TakeSelection(firstMenu.handle, selection), "No default-only capture");
 
 	ComPtr<IContextMenu> second;
