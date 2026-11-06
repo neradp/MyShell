@@ -30,28 +30,14 @@ namespace Nilesoft
 				auto hr = S_OK;
 				if(!_factory)
 				{
-					if(::IsWindows8OrGreater())
-					{
-						hr = ::CoCreateInstance
-						(
-							CLSID_WICImagingFactory2,
-							nullptr,
-							CLSCTX_INPROC_SERVER,
-							__uuidof(IWICImagingFactory2),
-							(void**)&_factory
-						);
-					}
-					else
-					{
-						hr = ::CoCreateInstance
-						(
-							CLSID_WICImagingFactory1,
-							nullptr,
-							CLSCTX_INPROC_SERVER,
-							__uuidof(IWICImagingFactory),
-							(void**)&_factory
-						);
-					}
+					hr = ::CoCreateInstance
+					(
+						CLSID_WICImagingFactory2,
+						nullptr,
+						CLSCTX_INPROC_SERVER,
+						__uuidof(IWICImagingFactory2),
+						(void**)&_factory
+					);
 				}
 				return(hr == S_OK && _factory);
 			}
@@ -211,8 +197,7 @@ namespace Nilesoft
 				if(init() && path)
 				{
 					IWICBitmapDecoder *decoder = nullptr;
-					auto hr = _factory->CreateDecoderFromFilename(path, 
-																  ::IsWindows8OrGreater() ? &CLSID_WICPngDecoder2 : &CLSID_WICPngDecoder1, 
+					auto hr = _factory->CreateDecoderFromFilename(path, &CLSID_WICPngDecoder2,
 																  GENERIC_READ, WICDecodeMetadataCacheOnDemand, &decoder);
 
 					if(S_OK == hr && decoder)

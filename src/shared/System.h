@@ -2203,7 +2203,6 @@ inline static auto PostMSG(HWND hWnd, uint32_t msg, auto wparam, auto lparam)
 }
 
 #include "System\auto_ptr.h"
-#include "System\MemoryManager.h"
 #include "System\Diagnostics\Thread.h"
 #include "System\DLL.h"
 

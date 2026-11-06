@@ -61,27 +61,20 @@ namespace Nilesoft
 				BOOL   isAdmin = FALSE;
 				DWORD  dwSize = 0;
 
-				auto winver = &Windows::Version::Instance();
 				// Open the primary access token of the process for query and duplicate.
 				if(!::OpenProcessToken(::GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &token.hToken))
 					return false;
 
-				// Determine whether system is running Windows Vista or later operating systems
+				// Determine token type: limited, elevated, or default. 
+				TOKEN_ELEVATION_TYPE eType{};
+				if(!::GetTokenInformation(token.hToken, TokenElevationType, &eType, sizeof(eType), &dwSize))
+					return false;
 
-				if(winver->IsWindowsVistaOrGreater())
+				// If limited, get the linked elevated token for further check.
+				if(TokenElevationTypeLimited == eType)
 				{
-					// Running Windows Vista or later (major version >= 6). 
-					// Determine token type: limited, elevated, or default. 
-					TOKEN_ELEVATION_TYPE eType{};
-					if(!::GetTokenInformation(token.hToken, TokenElevationType, &eType, sizeof(eType), &dwSize))
+					if(!::GetTokenInformation(token.hToken, TokenLinkedToken, &token.hCheck, sizeof(token.hCheck), &dwSize))
 						return false;
-
-					// If limited, get the linked elevated token for further check.
-					if(TokenElevationTypeLimited == eType)
-					{
-						if(!::GetTokenInformation(token.hToken, TokenLinkedToken, &token.hCheck, sizeof(token.hCheck), &dwSize))
-							return false;
-					}
 				}
 
 				// CheckTokenMembership requires an impersonation token. If we just got a 

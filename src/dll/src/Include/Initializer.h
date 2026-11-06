@@ -593,7 +593,7 @@ namespace Nilesoft
 		class Initializer
 		{
 		private:
-			uintptr_t _last_write_time{};
+			uint64_t _last_write_time{};
 
 		public:
 			struct {

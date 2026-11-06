@@ -7,8 +7,6 @@ namespace Nilesoft
 {
 	namespace Shell
 	{
-		const Windows::Version *os = &Windows::Version::Instance();
-
 		bool Initializer::init(HINSTANCE hInstance)
 		{
 			HInstance = hInstance;
@@ -39,15 +37,10 @@ namespace Nilesoft
 					application.Manager = (path + L"exe").move();
 				}
 
-				auto hwnd_foreground = ::GetForegroundWindow();
-				if(os->IsWindowsVersionOrGreater(10, 0, 14393))
-					dpi = DLL::User32<uint32_t>("GetDpiForWindow", hwnd_foreground);
-				else
-					dpi = DC(hwnd_foreground).GetDeviceCapsY();
-
-				//dpi = ::GetDpiForWindow(::GetForegroundWindow());//win10 version 1607 //10.0.14393
+				dpi = ::GetDpiForWindow(::GetForegroundWindow());
+				if(dpi == 0)
+					dpi = USER_DEFAULT_SCREEN_DPI;
 				is_elevated = Security::Elevation::IsElevated();
-				//WIC::init();
 			}
 			catch(...)
 			{
@@ -204,13 +197,13 @@ namespace Nilesoft
 				if(hConfig)
 				{
 					FILETIME ft_lastWriteTime{};
-					auto last_write_time = reinterpret_cast<uintptr_t *>(&ft_lastWriteTime);
-					if(::GetFileTime(hConfig, nullptr, nullptr, &ft_lastWriteTime) && *last_write_time != 0)
+					if(::GetFileTime(hConfig, nullptr, nullptr, &ft_lastWriteTime))
 					{
-						if(*last_write_time != _last_write_time)
+						ULARGE_INTEGER last_write_time{ ft_lastWriteTime.dwLowDateTime, ft_lastWriteTime.dwHighDateTime };
+						if(last_write_time.QuadPart != 0 && last_write_time.QuadPart != _last_write_time)
 						{
 							res = _last_write_time > 0;
-							_last_write_time = *last_write_time;
+							_last_write_time = last_write_time.QuadPart;
 						}
 					}
 				}
@@ -387,9 +380,6 @@ namespace Nilesoft
 					MAP_MUID.emplace(uid.id, uid);
 			};
 
-			auto isw11 = [](uint32_t val1, uint32_t val2)->uint32_t { return os->IsWindows11OrGreater() ? val1 : val2; };
-			auto isw8 = [](uint32_t val1, uint32_t val2)->uint32_t { return os->IsWindows8OrGreater() ? val1 : val2; };
-
 			auto user32 = L"user32.dll";
 			auto shell32 = L"shell32.dll";
 			auto explorerframe = L"explorerframe.dll";
@@ -399,25 +389,11 @@ namespace Nilesoft
 				{IDENT_ID_TROUBLESHOOT_COMPATIBILITY, 2022},
 			 });
 
-			if(os->Major >= 10 && os->Build > 10240)
-			{
-				ldstr(L"ntshrui.dll", {
-				   {IDENT_ID_GIVE_ACCESS_TO, 103},
-				   {IDENT_ID_SHARE_WITH, 104},
-				   {IDENT_ID_SHARE, 107},
-				});
-			}
-			else 
-			{
-				ldstr(L"ntshrui.dll", {
-				   {IDENT_ID_SHARE_WITH, 103},
-				   {IDENT_ID_SHARE, 107},
-				});
-
-				add_uid({
-					{ IDENT_ID_GIVE_ACCESS_TO, 0}
-				});
-			}
+			ldstr(L"ntshrui.dll", {
+			   {IDENT_ID_GIVE_ACCESS_TO, 103},
+			   {IDENT_ID_SHARE_WITH, 104},
+			   {IDENT_ID_SHARE, 107},
+			});
 
 			ldstr(L"appresolver.dll", {
 				{ IDENT_ID_OPEN, 8550 },
@@ -477,8 +453,8 @@ namespace Nilesoft
 					{ IDENT_ID_COLLAPSE_ALL_GROUPS , 28756},
 					{ IDENT_ID_COPY_TO_FOLDER, 28702},
 					{ IDENT_ID_MOVE_TO_FOLDER, 28703},
-					{ IDENT_ID_SELECT_ALL, isw11(28707, 28705)},
-					{ IDENT_ID_INVERT_SELECTION, isw11(28708,28706)}
+					{ IDENT_ID_SELECT_ALL, 28707},
+					{ IDENT_ID_INVERT_SELECTION, 28708}
 				}},
 				{	218, {
 					{ IDENT_ID_SHOW_DESKTOP_ICONS, 29698}
@@ -506,8 +482,6 @@ namespace Nilesoft
 					{ IDENT_ID_SHOW_THIS_PC, 4},
 					{ IDENT_ID_SHOW_NETWORK, 5},
 					{ IDENT_ID_SHOW_LIBRARIES, 3},
-					//{ IDENT_ID_SHOW_ALL_FOLDERS, isw8(1, 0), {} },
-					//{ IDENT_ID_EXPAND_TO_CURRENT_FOLDER, isw8(2, 1),/*, {L'\uE1B1', 0}*/ },
 				}},
 				/*{	280, {
 					{ IDENT_ID_OPEN_FILE_LOCATION, 0, { L'\uE0E8', 0 } },
@@ -678,21 +652,11 @@ namespace Nilesoft
 				{IDENT_ID_PERMANENTLY_DELETE, 37394}
 			});
 
-			//window 7
-			if(!os->IsWindows8OrGreater())
-			{
-				ldstr(shell32, {
-					{IDENT_ID_PIN_TO_START_MENU, 5381},
-					{IDENT_ID_UNPIN_FROM_START_MENU, 5382}
-				});
-			}
-			else 
-			{
-				add_uid({
-					{ IDENT_ID_PIN_TO_START_MENU, 0},
-					{ IDENT_ID_UNPIN_FROM_START_MENU, 0}
-				});
-			}
+			// Start-menu pin verbs are not in shell32 since Windows 8; keep the IDs resolvable.
+			add_uid({
+				{ IDENT_ID_PIN_TO_START_MENU, 0},
+				{ IDENT_ID_UNPIN_FROM_START_MENU, 0}
+			});
 			
 			ldstr(explorerframe, {
 				{IDENT_ID_FOLDER_OPTIONS, 1030},

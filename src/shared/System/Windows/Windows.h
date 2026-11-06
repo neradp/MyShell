@@ -190,46 +190,6 @@ namespace Nilesoft
 
 			bool IsWindows11OrGreater() const { return (Major > 10 || (Major == 10 && Build >= 22000)); }
 			bool IsWindows11CanaryOrDev() const { return IsWindows11OrGreater() && (IsCanaryBuild || IsDevBuild); }
-			bool IsWindows10OrGreater() const { return IsWindowsVersionOrGreater(10, 0); }
-			bool IsWindows81OrGreater() const { return IsWindowsVersionOrGreater(6, 3); }
-			bool IsWindows8OrGreater() const { return IsWindowsVersionOrGreater(6, 2); }
-			bool IsWindows7OrGreater() const { return IsWindowsVersionOrGreater(6, 1); }
-			bool IsWindowsVistaOrGreater() const { return IsWindowsVersionOrGreater(6, 0); }
-			bool IsWindowsXPOrGreater() const { return IsWindowsVersionOrGreater(5, 1); }
-
-			bool IsWindows10OrEarlier() const
-			{
-				return (Major < 10) || ((Major == 10) && (Build < 22000));
-			}
-
-			bool IsWindowsVersionOrGreater(uint32_t majorVersion, uint32_t minorVersion, uint32_t buildVersion) const
-			{
-				if(Major > majorVersion)
-					return true;
-				return (Major == majorVersion) && (Minor >= minorVersion) && (Build >= buildVersion );
-			}
-
-			bool IsWindowsVersionOrGreater(uint32_t majorVersion, uint32_t minorVersion) const
-			{
-				if(Major > majorVersion)
-					return true;
-				return (Major == majorVersion) && (Minor >= minorVersion);
-			}
-
-			bool IsWindowsVersionOrGreater(uint32_t majorVersion) const
-			{
-				return (Major >= majorVersion);
-			}
-
-			bool IsWindowsVersion(uint32_t majorVersion) const
-			{
-				return (Major == majorVersion);
-			}
-
-			bool IsWindowsVersion(uint32_t majorVersion, uint32_t minorVersion) const
-			{
-				return (Major == majorVersion && Minor == minorVersion);
-			}
 
 			bool Is64Bit() { return Type == 1; }
 
@@ -537,8 +497,6 @@ namespace Nilesoft
 					ss.fShowSysFiles = ss.fShowAllObjects;
 					ss.fShowSuperHidden = ss.fShowAllObjects;
 					shGetSetSettings(&ss, SSF_SHOWALLOBJECTS | SSF_SHOWSYSFILES | SSF_SHOWSUPERHIDDEN, TRUE);
-					if(!::IsWindows10OrGreater())
-						Refresh();
 				}
 			}
 
@@ -552,8 +510,6 @@ namespace Nilesoft
 					shGetSetSettings(&ss, SSF_SHOWEXTENSIONS, FALSE);
 					ss.fShowExtensions = ss.fShowExtensions ? FALSE : TRUE;
 					shGetSetSettings(&ss, SSF_SHOWEXTENSIONS, TRUE);
-					if(!::IsWindows10OrGreater())
-						Refresh();
 				}
 			}
 

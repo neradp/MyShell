@@ -105,8 +105,8 @@ namespace Nilesoft
 			{
 				if(!dllPath || !dllPath[0])
 					return false;
-				
-				if(!::IsWindows7OrGreater())
+
+				if(!Windows::Version::Instance().IsWindows11OrGreater())
 					return false;
 
 				int ret = 0;

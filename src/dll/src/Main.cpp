@@ -1,4 +1,4 @@
-﻿#include <pch.h>
+#include <pch.h>
 #include "Include/ContextMenu.h"
 #include "Library/detours.h"
 #include "RegistryConfig.h"
@@ -7,34 +7,10 @@
 using namespace Nilesoft::Shell;
 using namespace Diagnostics;
 
-//MS also offers EV Code Certificates, which enable immediate acceptance by SmartScreeen of Windows Defender
-//https://blogs.msdn.microsoft.com/ie/2012/08/14/microsoft-smartscreen-extended-validation-ev-code-signing-certificates/
-
 #ifdef _DEBUG
 #include <crtdbg.h>
 #endif
-/*
-Windows 10
-Version Build
--------------
-1507	10240
-1511	10586
-1607	14393
-1703	15063
-1709	16299
-1803	17134
-1809	17763
-1903	18362
-1909	18363
-2004	19041
-20H2	19042
-21H1	19043
-21H2	19044
-22H2	19045
-*/
 
-//#pragma comment(lib, "mincore.lib")
-//#pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "UxTheme.lib")
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "dwmapi.lib")
@@ -44,148 +20,29 @@ Version Build
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "oleaut32.lib")
 #pragma comment(lib, "Shlwapi.lib")
-
-#if defined(_M_ARM64)
-#pragma comment(lib, "plutosvg-arm64.lib")
-#pragma comment(lib, "detours-arm64.lib")
-#elif defined(_M_ARM)
-#pragma comment(lib, "plutosvg-arm.lib")
-#pragma comment(lib, "detours-arm.lib")
-#elif defined(_M_X64)
+#pragma comment(lib, "Shcore.lib")
 #pragma comment(lib, "plutosvg-x64.lib")
 #pragma comment(lib, "detours-x64.lib")
-#elif defined(_M_IX86)
-#pragma comment(lib, "plutosvg-x86.lib")
-#pragma comment(lib, "detours-x86.lib")
-#endif
-
-//#pragma optimize("ts", on) 
-
-/*
-#if defined(_M_X64)
-#pragma comment(linker, "/export:DllCanUnloadNow=_DllCanUnloadNow")
-#else
-#pragma comment(linker, "/export:DllCanUnloadNow=__DllCanUnloadNow@0")
-#endif
-*/
-
-#ifdef _DEBUG
-
-std::unordered_map< uint32_t, const wchar_t *> msg_map0 = {
-	{ WM_DESTROY, L"WM_DESTROY" },
-	{ WM_NCDESTROY, L"WM_NCDESTROY" },
-	{ WM_CREATE, L"WM_CREATE" },
-	{ WM_NCCREATE, L"WM_NCCREATE" },
-	{ WM_PAINT, L"WM_PAINT" },
-	{ WM_NCPAINT, L"WM_NCPAINT" },
-	{ WM_PRINTCLIENT, L"WM_PRINTCLIENT" },
-	{ WM_PRINT, L"WM_PRINT" },
-	{ WM_NCCALCSIZE, L"WM_NCCALCSIZE" },
-	{ WM_ERASEBKGND, L"WM_ERASEBKGND" },
-	{ MN_SELECTITEM, L"MN_SELECTITEM" },
-	{ WM_KEYDOWN, L"WM_KEYDOWN" },
-	{ WM_WINDOWPOSCHANGED, L"WM_WINDOWPOSCHANGED" },
-	{ WM_WINDOWPOSCHANGING, L"WM_WINDOWPOSCHANGING" },
-	{ WM_NCHITTEST, L"WM_NCHITTEST" },
-	{ WM_TIMER, L"WM_TIMER" },
-	{ WM_SIZE, L"WM_SIZE" },
-	{ WM_MOVE, L"WM_MOVE" },
-	{ MN_SIZEWINDOW, L"MN_SIZEWINDOW" },
-	{ MN_DBLCLK, L"MN_DBLCLK" },
-	{ MN_CLOSEHIERARCHY, L"MN_CLOSEHIERARCHY" },
-	{ MN_SETTIMERTOOPENHIERARCHY, L"MN_SETTIMERTOOPENHIERARCHY" },
-	{ MN_FINDMENUWINDOWFROMPOINT, L"MN_FINDMENUWINDOWFROMPOINT" },
-	{ MN_ENDMENU, L"MN_ENDMENU" },
-	{ MN_CANCELMENUS, L"MN_CANCELMENUS" },
-	{ MN_BUTTONDOWN, L"MN_BUTTONDOWN" },
-	{ MN_BUTTONUP, L"MN_BUTTONUP" },
-	{ WM_UAHDESTROYWINDOW, L"WM_UAHDESTROYWINDOW" },
-	{ WM_UAHMEASUREMENUITEM, L"WM_UAHMEASUREMENUITEM" },
-	{ WM_UAHINITMENUPOPUP, L"WM_UAHINITMENUPOPUP" },
-	{ WM_UAHNCPAINTMENUPOPUP, L"WM_UAHNCPAINTMENUPOPUP" },
-	{ WM_UAHDRAWMENU, L"WM_UAHDRAWMENU" },
-	{ WM_NCUAHDRAWFRAME, L"WM_NCUAHDRAWFRAME" },
-	{ WM_UAHDRAWMENUITEM, L"WM_UAHDRAWMENUITEM" },
-	{ WM_ENTERMENULOOP, L"WM_ENTERMENULOOP" },
-	{ WM_EXITMENULOOP, L"WM_EXITMENULOOP" },
-	{ WM_INITMENU, L"WM_INITMENU" },
-	{ WM_INITMENUPOPUP, L"WM_INITMENUPOPUP" },
-	{ WM_UNINITMENUPOPUP, L"WM_UNINITMENUPOPUP" },
-	{ WM_MENUSELECT, L"WM_MENUSELECT" },
-	{ WM_NEXTMENU, L"WM_NEXTMENU" },
-	{ WM_MENUCHAR, L"WM_MENUCHAR" },
-	{ WM_MEASUREITEM, L"WM_MEASUREITEM" },
-	{ WM_DRAWITEM, L"WM_DRAWITEM" },
-	{ WM_MENUCOMMAND, L"WM_MENUCOMMAND" },
-	{ WM_COMMAND, L"WM_COMMAND" },
-	{ WM_SYSCOMMAND, L"WM_SYSCOMMAND" },
-	{ WM_MENURBUTTONUP, L"WM_MENURBUTTONUP" },
-	{ WM_CAPTURECHANGED, L"WM_CAPTURECHANGED" },
-	{ WM_ENTERIDLE, L"WM_ENTERIDLE" },
-	{ WM_SETCURSOR, L"WM_SETCURSOR" },
-	{ WM_SHOWWINDOW , L"WM_SHOWWINDOW" },
-	{ WM_PARENTNOTIFY, L"WM_PARENTNOTIFY"},
-	{ WM_MOUSEACTIVATE, L"WM_MOUSEACTIVATE"},
-	{ WM_CONTEXTMENU, L"WM_CONTEXTMENU"},
-	{ WM_NOTIFY, L"WM_NOTIFY"},
-	{ WM_SETFOCUS, L"WM_SETFOCUS"},
-	{ WM_KILLFOCUS, L"WM_KILLFOCUS"},
-	{ WM_GETOBJECT, L"WM_GETOBJECT"},
-	{ WM_ACTIVATE, L"WM_ACTIVATE"},
-	{ WM_NCACTIVATE, L"WM_NCACTIVATE"},
-	{ WM_ACTIVATEAPP, L"WM_ACTIVATEAPP"},
-	{ WM_CHANGEUISTATE, L"WM_CHANGEUISTATE"},
-	{ WM_IME_SETCONTEXT, L"WM_IME_SETCONTEXT"},
-	{ WM_IME_NOTIFY, L"WM_IME_NOTIFY"},
-	{ WM_MOUSEMOVE, L"WM_MOUSEMOVE"},
-	{WM_DEVICECHANGE, L"WM_DEVICECHANGE"},
-	{WM_IME_REQUEST, L"WM_IME_REQUEST"},
-	{MN_GETHMENU, L"MN_GETHMENU"},
-	{WM_LBUTTONDOWN, L"WM_LBUTTONDOWN"},
-	{WM_RBUTTONDOWN, L"WM_RBUTTONDOWN"},
-	{WM_LBUTTONUP, L"WM_LBUTTONUP"},
-	{WM_RBUTTONUP, L"WM_RBUTTONUP"},
-	{WM_MOUSELEAVE,L"WM_MOUSELEAVE"},
-	{WM_USER, L"WM_USER"},
-	{WM_APP, L"WM_APP"},
-	{ 0, nullptr }
-};
-
-#endif
 
 #pragma region Entry Point
-
-#define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))  // windowsx.h
-#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))  // windowsx.h
 
 HINSTANCE _hInstance{};
 volatile long g_cDllRef = 0;
 Initializer _initializer;
 extern Logger &_log = Logger::Instance();
-const Windows::Version *ver = &Windows::Version::Instance();
-
-HANDLE watch_event = nullptr;
 
 WindowsHook _taskbar_mouse;
 
-//std::unordered_map<HMODULE, IATHook> _detours_ci;
 IATHook iathook_NtUserTrackPopupMenuEx;
-std::vector<IATHook> iathook_TrackPopupMenu; //OverrideFunction
-//Detours<decltype(::TrackPopupMenu)> _TrackPopupMenu;
-//Detours<decltype(::TrackPopupMenuEx)> _TrackPopupMenuEx;
-Detours<decltype(::DllGetClassObject)> _DllGetClassObject;
+std::vector<IATHook> iathook_TrackPopupMenu;
 Detours<decltype(::CoCreateInstance)> _CoCreateInstance;
 
-uint32_t MN_CONTEXTMENU = 0;
 std::unordered_map<HWND, Window> _window_taskbar;
 
-LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 __inline auto is_registered() -> bool
 {
-	//auto_regkey r;
-	//return ERROR_SUCCESS == auto_regkey::exists_key(HKCR, HKCR_CLSID_ContextMenu);
 	return RegistryConfig::IsRegistered();
 }
 
@@ -216,39 +73,6 @@ struct taskbar_t
 	inline static IComPtr<IUIAutomation> _IUIAutomation;
 	inline static auto wShell_TrayWnd = ::RegisterWindowMessageW(Windows::WC_Shell_TrayWnd);
 	inline static auto wShell_SecondaryTrayWnd = ::RegisterWindowMessageW(Windows::WC_Shell_SecondaryTrayWnd);
-
-	static bool hook(HWND hTaskbar, UINT_PTR id)
-	{
-		Window window = Window::Find(Windows::WC_Composition_DesktopWindowContentBridge, hTaskbar);
-		if(window && !window.is_prop(UxSubclass))
-		{
-			if(!_window_taskbar.contains(window))
-			{
-				if(window.subclass(TaskbarSubclassProc, id, hTaskbar))
-				{
-					window.prop(UxSubclass, CONTEXTMENUSUBCLASS);
-					_window_taskbar[window] = window;
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	static void try_hook(HWND hTaskbar, UINT_PTR id, int time = 500)
-	{
-		if(hTaskbar)
-		{
-			::SetTimer(hTaskbar, id, time, [](HWND hWnd, UINT, UINT_PTR id, DWORD)
-			{
-				static int atttempt = 0;
-				if(hook(hWnd, id))
-					atttempt = 50;
-				if(atttempt++ >= 50)
-					::KillTimer(hWnd, id);
-			});
-		}
-	}
 
 	static void hook_all()
 	{
@@ -304,8 +128,6 @@ struct taskbar_t
 		{
 			window.second.set_long(GWLP_WNDPROC, window.second.prop(UxSubclass));
 			window.second.remove_prop(UxSubclass);
-			_window_taskbar.erase(window.first);
-			break;
 		}
 		_window_taskbar.clear();
 	}
@@ -332,7 +154,7 @@ struct taskbar_t
 						freeString(id);
 					}
 					void freeString(BSTR s) {
-						if(s) DLL::Invoke(L"OleAut32.dll", "SysFreeString", s);
+						if(s) ::SysFreeString(s);
 					}
 				} elem;
 				
@@ -356,7 +178,6 @@ struct taskbar_t
 					{
 						if(!::lstrcmpiW(elem.id, L"SystemTrayIcon"))
 							ret = !::lstrcmpiW(elem.type, L"SystemTray.OmniButton");
-						//_log.info(L"id=[%s],\t[%s], [%s]", elem.id, elem.type, elem.name);
 					}
 				}
 			}
@@ -391,10 +212,10 @@ HRESULT __stdcall CoCreateInstanceHook(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWO
 
 	if(_initializer.cache && (is_inproc_server || is_local_server))
 	{
-		auto hr = E_NOINTERFACE; //CLASS_E_CLASSNOTAVAILABLE;
+		auto hr = E_NOINTERFACE;
 		auto process = true;
 
-		if(rclsid == IID_FileExplorerContextMenu /*&& riid == {706461D1-AC5F-4730-BFE3-CAC6CAD5EF5E}*/)
+		if(rclsid == IID_FileExplorerContextMenu)
 		{
 			if(_initializer.cache->settings.priority)
 			{
@@ -409,44 +230,8 @@ HRESULT __stdcall CoCreateInstanceHook(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWO
 		}
 		else
 		{
-			/*auto xx = Guid(L"{f3d06e7c-1e45-4a26-847e-f9fcdee59be0}");
-
-			if(xx.equals({riid,rclsid}))
-			{
-				MB(L"0000000000000");
-			}*/
-
-			//if(riid== IID_IExplorerCommandProvider)
-			//	_log.info(L"IID_IExplorerCommandProvider %s", Guid(rclsid).to_string(2).c_str());
-
-			//if(riid == IID_IExecuteCommand)
-			//	_log.info(L"IID_IExecuteCommand %s", Guid(rclsid).to_string(2).c_str());
-			/*
-			if(riid == IID_IExplorerCommandState)
-			{
-				hr = _CoCreateInstance.invoke(rclsid, pUnkOuter, dwClsContext, riid, ppv);
-
-				auto cc = (IExplorerCommand *)*ppv;
-
-				IExplorerCommand *f = 0;
-				cc->QueryInterface(IID_IExplorerCommand, (void**)&f);
-				//printto;rotate90;rotate270;setwallpaper;slideshow
-
-				LPWSTR p;
-				f->GetTitle(0, &p);
-				_log.info(L"IExplorerCommandState %s", p);
-				return hr;
-			}
-		*/
 			auto is_UWP = false;
 			process = false;
-			/*
-			if(Guid(rclsid).equals(L"{E6950302-61F0-4FEB-97DB-855E30D4A991}"))
-			{
-				*ppv = new ExplorerCommandBase;
-				return S_OK;
-			}
-			*/
 			if(is_inproc_server)
 				process = riid == IID_IContextMenu || riid == IID_IContextMenu2 || riid == IID_IContextMenu3 || riid == IID_IExplorerCommand;
 			else
@@ -505,16 +290,6 @@ HRESULT __stdcall CoCreateInstanceHook(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWO
 	return _CoCreateInstance.invoke(rclsid, pUnkOuter, dwClsContext, riid, ppv);
 }
 
-STDAPI WINAPI DllGetClassObjectHook(REFCLSID rclsid, _In_ REFIID riid, LPVOID *ppv)
-{
-	auto hr = CLASS_E_CLASSNOTAVAILABLE;
-	if(IID_FileExplorerContextMenu == rclsid/* || rclsid == IID_FileExplorerCommandBar*/)
-		return hr;
-	hr = _DllGetClassObject.invoke(rclsid, riid, ppv);
-	return hr;
-}
-
-#define TPM_SYSMENU	0x0200L
 bool is_in_taskbar;
 
 BOOL WINAPI TrackPopupMenuProc(HMENU hMenu, uint32_t uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
@@ -522,10 +297,6 @@ BOOL WINAPI TrackPopupMenuExProc(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 
 BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm, int tfunc)
 {
-#ifdef _DIJA
-	return (BOOL)XXX::OnContextMenu(hWnd, x, y, hMenu);;
-#endif
-
 	auto result = FALSE;
 	auto invoked = false;
 
@@ -554,8 +325,7 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 				__leave;
 			}
 
-			//cs.lock();
-			auto has_inited = 0; Initializer::OnState(is_in_taskbar);
+			auto has_inited = Initializer::OnState(is_in_taskbar);
 
 			if(!_initializer.Status.Disabled)
 			{
@@ -563,27 +333,16 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 				if(!_initializer.Status.Loaded)
 				{
 					if(_initializer.has_error() || has_inited)
-						__leave; //goto skip;
+						__leave;
 					_initializer.init();
 				}
 
 				auto ctx = ContextMenu::CreateAndInitialize(hWnd, hMenu, { x, y }, _loader.explorer, _loader.contextmenuhandler);
 				if(ctx != nullptr)
 				{
-
 					Flag<uint32_t> flag(uFlags);
-					//Selections::point = { x, y };
-					//	flag.remove(TPM_RETURNCMD);
 					flag.remove(TPM_NONOTIFY);
-					//	flag.remove(TPM_NOANIMATION);
 
-				//	flag.add(TPM_HORPOSANIMATION);
-
-				//	BOOL v = 1;
-				//	SystemParametersInfoW(SPI_SETMENUANIMATION, 0, &v, SPIF_SENDCHANGE);
-				//	v = 0;
-				//	SystemParametersInfoW(SPI_GETMENUFADE, 0, &v, SPIF_SENDCHANGE);
-					
 					if(ctx->is_layoutRTL == 1)
 						flag.add(TPM_LAYOUTRTL);
 					else if(ctx->is_layoutRTL == 0)
@@ -642,9 +401,6 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 					}
 					
 					invoke(ctx->MenuHandle(), flag, { x, y });
-				
-					// v = 0;
-					// SystemParametersInfoW(SPI_SETMENUANIMATION, 0, &v, SPIF_SENDCHANGE);
 					result = ctx->InvokeCommand(result);
 					__leave;
 				}
@@ -668,21 +424,17 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 
 BOOL WINAPI TrackPopupMenuProc(HMENU hMenu, uint32_t uFlags, int x, int y, [[maybe_unused]] int nReserved, HWND hWnd, [[maybe_unused]] const RECT *prcRect)
 {
-	//_log.write(L"%s\n", Window::class_name(hWnd).c_str());
 	return NtUserTrackPopupMenu(hMenu, uFlags, x, y, hWnd, nullptr, 0);
 }
 
-//win32u.dll win10 1607	Redstone 1 14393
 BOOL WINAPI TrackPopupMenuExProc(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm)
 {
-	//_log.write(L"%s\n", Window::class_name(hWnd).c_str());
 	return NtUserTrackPopupMenu(hMenu, uFlags, x, y, hWnd, lptpm, 1);
 }
 
 bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 {
 	auto ret = false;
-	//if(taskbar_t::is_allowed_area(hTaskbar, pt))
 	{
 		struct menu {
 			HMENU handle{};
@@ -693,11 +445,9 @@ bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 		if(_menu.handle)
 		{
 			is_in_taskbar = true;
-			//::SetForegroundWindow(hTaskbar);
 			auto uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON | (::GetSystemMetrics(SM_MIDEASTENABLED) ? TPM_LAYOUTRTL : 0);
 			if(uMsg == WM_CONTEXTMENU)
 			{
-				//_log.info(L"************");
 				TrackPopupMenuExProc(_menu.handle, uFlags, pt.x, pt.y, hTaskbar, nullptr);
 			}
 			else 
@@ -799,133 +549,6 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	return wndproc(hWnd, uMsg, wParam, lParam);
 }
 
-LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, [[maybe_unused]] UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
-{
-	if(uMsg == WM_CONTEXTMENU)
-	{
-		auto hTaskbar = reinterpret_cast<HWND>(dwRefData);
-		auto pt = Point::CursorPos();
-		if(taskbar_t::is_allowed_area(hTaskbar, pt))
-		{
-			if(ShowTaskbarContextMenu(hTaskbar, pt, wParam == 0 && lParam == 0? WM_RBUTTONDOWN : WM_CONTEXTMENU))
-				return 0;			
-		}
-	}
-	else if(uMsg == WM_MOUSEACTIVATE)
-	{
-		auto lret = ::DefSubclassProc(hWnd, uMsg, wParam, lParam);
-		auto msg = HIWORD(lParam);
-
-		if(/*msg != WM_LBUTTONDOWN && */msg != WM_RBUTTONDOWN)
-			return lret;
-
-		auto hTaskbar = reinterpret_cast<HWND>(dwRefData);
-		auto pt = Point::CursorPos();
-
-		if(taskbar_t::is_allowed_area(hTaskbar, pt))
-		{
-			int disabled_taskbar = 0;
-			if(RegistryConfig::get(L"\\disable", L"taskbar", disabled_taskbar) && disabled_taskbar == 1)
-				return lret;
-
-			if(msg == WM_RBUTTONDOWN)
-			{
-				Keyboard kb;
-				if(auto count = kb.get_keys_excloude_contextmenu(); count > 0)
-				{
-					if(kb.key_ctrl())
-					{
-						if(count == 2 && kb.key_win())
-							return lret;
-
-						if(count == 1 && !_initializer.has_error())
-						{
-							if(!_initializer.Status.Loaded)
-								_initializer.OnState();
-						}
-					}
-				}
-			}
-
-			if(_initializer.has_error())
-			{
-				if(msg != WM_RBUTTONDOWN)
-					return lret;
-
-				_initializer.OnState();
-
-				if(_initializer.has_error())
-					return lret;
-			}
-			else
-			{
-				if(_initializer.Status.Disabled)
-					return lret;
-			}
-
-			if(!is_registered())
-			{
-				_taskbar_mouse.unhook();
-				taskbar_t::unhook(hWnd);
-			//	for(auto &window : _window_taskbar)
-			//		window.second.remove_prop(UxSubclass);
-				return lret;
-			}
-
-			if(msg == WM_RBUTTONDOWN)
-			{
-				_taskbar_mouse.hook(WH_MOUSE, [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
-				{
-					//auto lret = _taskbar_mouse.callnext(nCode, wParam, lParam);
-					if(nCode == HC_ACTION && wParam == WM_RBUTTONUP)
-					{
-						auto mh = reinterpret_cast<MOUSEHOOKSTRUCT *>(lParam);
-						Window window = ::GetParent(mh->hwnd);
-						if(window.is_prop(UxSubclass))
-						{
-							_taskbar_mouse.unhook();
-							::SetFocus(window);
-							ShowTaskbarContextMenu(window, mh->pt, WM_CONTEXTMENU);
-							return 1;
-						}
-					}
-					return _taskbar_mouse.callnext(nCode, wParam, lParam);
-				}, hWnd);
-				
-				return MA_ACTIVATEANDEAT;
-			}
-
-			//if(msg != WM_RBUTTONDOWN)
-			//	::SetFocus(hWnd);
-
-			/*
-			if(msg == WM_RBUTTONDOWN)
-			{
-				::SetFocus(hWnd);
-				//ShowTaskbarContextMenu(hWnd, pt, WM_RBUTTONDOWN);
-				SendMessageW(hWnd, WM_CONTEXTMENU, 0, 0);
-			}
-			*/
-		}
-		return lret;
-	}
-	else if(uMsg == WM_SETTINGCHANGE)
-	{
-		if(SPI_SETWORKAREA == wParam && ::GetSystemMetrics(SM_CMONITORS) > 1)
-		{
-			taskbar_t::hook_all(1000);
-		}
-	}
-	else if(uMsg == WM_DESTROY)
-	{
-		taskbar_t::unhook(hWnd);
-		taskbar_t::hook_all(1000);
-	}
-
-	return ::DefSubclassProc(hWnd, uMsg, wParam, lParam);
-}
-
-//integrate 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 {
 	try
@@ -933,13 +556,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 		if(dwReason == DLL_PROCESS_ATTACH)
 		{
 			::DisableThreadLibraryCalls(hInstance);
-			//InitCommonControls();
-			/*INITCOMMONCONTROLSEX icex{};
-			// Load the ToolTip class from the DLL.
-			icex.dwSize = sizeof(icex);
-			icex.dwICC = ICC_BAR_CLASSES;
-			InitCommonControlsEx(&icex);
-			*/
 
 			_hInstance = hInstance;
 			_initializer.HInstance = _hInstance;
@@ -950,30 +566,15 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 						   | _CRTDBG_CHECK_ALWAYS_DF
 						   | _CRTDBG_LEAK_CHECK_DF
 						   | _CRTDBG_ALLOC_MEM_DF);
-
-			//::_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 #endif
 			_loader.init();
 
 			if(!_loader.explorer && !_loader.path.ends_with(L"\\shell.exe"))
 			{
-				
-				//	if(_loader.path.ends_with(L"\\firefox.exe") || _loader.path.ends_with(L"\\devenv.exe"))
-				//		return 0;
-				
 				int disabled_3rdparty = 0;
 				if(RegistryConfig::get(L"\\disable", L"3rdparty", disabled_3rdparty) && disabled_3rdparty == 1)
 					return 0;
-
-				/*if(RegistryConfig::IsFolderExtensions())
-				{
-					if(!hasImportTrackPopupMenu())
-						return 0;
-				}*/
 			}
-
-			//if(!loader)
-			//	_log.info(L"Load '%s'", Path::Module(nullptr).c_str());
 
 			if(_initializer.init(_hInstance))
 			{
@@ -988,7 +589,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 				_initializer.process.id = ::GetCurrentProcessId();
 				_initializer.process.handle = ::GetCurrentProcess();
 
-				//_log.info(L"%s", _initializer.process.name.c_str());
+				// Host IATs and detached worker threads point into this image; never let COM unload it.
+				HMODULE pinned{};
+				::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN | GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+					reinterpret_cast<LPCWSTR>(&DllMain), &pinned);
 
 				ContextMenu::RegisterLayer();
 
@@ -1002,7 +606,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 
 					auto user32 = "user32.dll";
 
-					// hooh all the modules in this process.
 					for(auto hModule : Process::Modules(_initializer.process.handle))
 					{
 						if(_hInstance == hModule)
@@ -1026,20 +629,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 					}
 				};
 
-				//_TrackPopupMenu.init(::TrackPopupMenu, TrackPopupMenuProc).hook();
-				//_TrackPopupMenuEx.init(::TrackPopupMenuEx, TrackPopupMenuExProc).hook();
-				//_CoCreateInstance.init(::CoCreateInstance, CoCreateInstanceProc).hook();
-				
 				if(_loader.explorer)
 				{
-					//_log.info(_loader.path);
-
 					_CoCreateInstance.Begin();
-					//_DllGetClassObject.init(hModule, "DllGetClassObject", DllGetClassObjectHook).hook();
 					_CoCreateInstance.init(::CoCreateInstance, CoCreateInstanceHook).hook();
-					//auto m = &_detours_ci[hModule];
-					//if(!m->installed())
-					//m->init(hModule, "api-ms-win-core-com-l1-1-0.dll", ::CoCreateInstance, CoCreateInstanceProc).install();
 					_CoCreateInstance.Commit();
 
 					if(!iathook_NtUserTrackPopupMenuEx.installed())
@@ -1047,49 +640,13 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 						std::thread([=]() { ::Sleep(2000); hook(); }).detach();
 					}
 
-					if(ver->IsWindows11OrGreater())
-					{
-
-						/*
-						auto keyCLSID = Registry::ClassesRoot.OpenSubKey(L"CLSID\\" CLS_FileExplorerContextMenu "\\TreatAs", false, false);
-						if(!(keyCLSID && keyCLSID.GetString(nullptr).equals(CLS_ContextMenu)))
-						{
-							auto hModule = ::GetModuleHandleW(Windows_UI_FileExplorer);
-
-							if(!hModule)
-								hModule = ::LoadLibraryW(Windows_UI_FileExplorer);
-
-							if(hModule)
-							{
-								auto r = _CoCreateInstance.Begin();
-								_log.info(L"%x", r);
-								//_DllGetClassObject.init(hModule, "DllGetClassObject", DllGetClassObjectHook).hook();
-								_CoCreateInstance.init(::CoCreateInstance, CoCreateInstanceHook).hook();
-								//auto m = &_detours_ci[hModule];
-								//if(!m->installed())
-								//m->init(hModule, "api-ms-win-core-com-l1-1-0.dll", ::CoCreateInstance, CoCreateInstanceProc).install();
-								_CoCreateInstance.Commit();
-							}
-						}
-						keyCLSID.Close();
-						*/
-
-						taskbar_t::hook_all(1000);
-					}
+					taskbar_t::hook_all(1000);
 				}
 				else if(!iathook_NtUserTrackPopupMenuEx.install())
 				{
 					hook();
 				}
 			}
-			//IsRegistered
-			/*
-			IID iid{};
-			CLSIDFromString(L"{23170F69-40C1-278A-1000-000100020000}", &iid);
-			Guid guid = iid;
-			MB(guid.to_string(2).c_str());
-			*/
-			//UuidFromStringW
 
 			return TRUE;
 		}
@@ -1099,26 +656,16 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 			{
 				if(_loader.explorer)
 				{
-					// Perform any necessary cleanup.
 					_taskbar_mouse.unhook();
 					taskbar_t::unhook_all();
-					//detour_NtUserTrackPopupMenuEx.uninstall(true);
 
-					if(ver->IsWindows11OrGreater())
-					{
-						_CoCreateInstance.Begin();
-						//_DllGetClassObject.unhook();
-						_CoCreateInstance.unhook();
-						_CoCreateInstance.Commit();
-					}
+					_CoCreateInstance.Begin();
+					_CoCreateInstance.unhook();
+					_CoCreateInstance.Commit();
 				}
 
 				for(auto &d : iathook_TrackPopupMenu)
 					d.uninstall(true);
-
-				//_TrackPopupMenu.unhook();
-				//_TrackPopupMenuEx.unhook();
-				//_CoCreateInstance.unhook();
 
 				ContextMenu::UnRegisterLayer();
 			}
@@ -1142,14 +689,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 	return FALSE;
 }
 
-//IID_FolderExtensions
-//#pragma comment(linker, "/export:DllGetClassObject=DllGetClassObject")
 _Check_return_
 STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid, [[maybe_unused]] _Outptr_ LPVOID FAR *ppv)
 {
-	auto hr = E_NOTIMPL;// CLASS_E_CLASSNOTAVAILABLE,E_NOTIMPL, E_OUTOFMEMORY, and E_UNEXPECTED,E_INVALIDARG
+	auto hr = E_NOTIMPL;
 	Guid iid = rclsid;
-	//Guid iid2 = riid;
 	if(!ppv)
 		return E_POINTER;
 	*ppv = nullptr;
@@ -1192,12 +736,7 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 	return hr;
 }
 
-//DllCanUnloadNow. COM calls this function to determine whether the object is serving any clients. 
-//If not, the system can unload the DLL and free the associated memory.
-// Check if we can unload the component from the memory.
-// NOTE: The component can be unloaded from the memory when its reference 
-// count is zero (i.e. nobody is still using the component).
-//#pragma comment(linker, "/export:DllCanUnloadNow=DllCanUnloadNow")
+// Advisory only: the image is pinned in DllMain once hooks are installed.
 __control_entrypoint(DllExport)
 STDAPI DllCanUnloadNow(void)
 {
@@ -1206,146 +745,7 @@ STDAPI DllCanUnloadNow(void)
 	if(!_loader.explorer || !is_registered())
 		return S_OK;
 	return S_FALSE;
-	/*
-	if(ContextMenu::Processes.size() == 0)
-	{
-		int p = 0;
-		EnumThreadWindows(GetCurrentThreadId(), [](HWND, LPARAM lp) {
-		(*((int *)lp))++;
-			return 0;
-		}, (LPARAM)&p);
-
-		//if(p)MBF(L"%d", p);
-		return p > 0 ? S_FALSE : S_OK;
-	}
-
-	//if(_loader.explorer)
-	//	return release() ? S_OK : S_FALSE;
-	return ContextMenu::Processes.size() == 0 ? S_OK : S_FALSE;
-	//return S_OK;
-	*/
 }
-
-// Register the COM server and the context menu handler.
-HRESULT Register(bool reg)
-{
-	try
-	{
-		if(reg)
-		{
-			Path::Delete(_log.path());
-			//_log.reset();
-		}
-
-		if(!ver->IsWindows7OrGreater())
-		{
-			//windows compatibility
-			_log.error(L"%s", string::Extract(_hInstance, IDS_WINDOWS_COMPATIBILITY).c_str());
-			return ERROR_EXE_MACHINE_TYPE_MISMATCH;//ERROR_DS_VERSION_CHECK_FAILURE
-		}
-
-		auto is_elevated = Security::Elevation::IsElevated();
-
-		if(!is_elevated)
-		{
-			// Missing administrative privileges!
-			string msg = string::Extract(_hInstance, IDS_ADMIN_PRIVILEGES).move();
-			//You will need to provide administrator permission to run this Shell
-			_log.error(L"%s", msg.c_str());
-			return ERROR_ACCESS_DENIED;
-		}
-
-		string path = Path::Module(_hInstance).move();
-
-		if(reg)
-		{
-			string dir = Path::Parent(path).move();
-			if(!dir.empty())
-				Security::Permission::SetFile(dir.c_str());
-			//_log.reset();
-			//IO::Path::Delete(_log.path());
-		}
-
-		string msg;
-
-		if(reg)
-		{
-			//_log.create();
-			REGOP regop;
-			regop.REGISTER = regop.CONTEXTMENU = regop.ICONOVERLAY = true;
-
-			if(!RegistryConfig::Register(path, regop))
-			{
-				msg = string::Extract(_hInstance, IDS_REGISTER_NOT_SUCCESS).move();
-				_log.error(L"%s", msg.c_str());
-				return S_FALSE;
-			}
-			msg = string::Extract(_hInstance, IDS_REGISTER_SUCCESS).move();
-		}
-		else
-		{
-			if(!RegistryConfig::IsRegistered())
-				return S_OK;
-
-			if(!RegistryConfig::Unregister())
-			{
-				msg = string::Extract(_hInstance, IDS_UNREGISTER_NOT_SUCCESS).move();
-				_log.error(L"%s", msg.c_str());
-				return S_FALSE;;
-			}
-			msg = string::Extract(_hInstance, IDS_UNREGISTER_SUCCESS).move();
-		}
-
-		_log.info(L"%s", msg.c_str());
-
-		_log.close();
-
-		return S_OK;
-	}
-	catch(...)
-	{
-#ifdef _DEBUG
-		_log.exception(__func__);
-#endif
-	}
-	_log.close();
-	return S_FALSE;
-}
-/*
-//  Register the COM server and the context menu handler.
-__control_entrypoint(DllExport)
-STDAPI DllRegisterServer()
-{
-	return Register(true);
-}
-
-__control_entrypoint(DllExport)
-STDAPI DllUnregisterServer()
-{
-	return Register(false);
-}
-*/
-/*
-STDAPI DllInstall(BOOL bInstall, _In_opt_ PCWSTR pszCmdLine)
-{
-	MBF(L"%d %s", bInstall, pszCmdLine);
-	return E_NOTIMPL;
-}
-*/
-
-/*
-#include <Shldisp.h>
-
-CoInitialize(NULL);
-// Create an instance of the shell class
-IShellDispatch4 *pShellDisp = NULL;
-HRESULT sc = CoCreateInstance(CLSID_Shell, NULL, CLSCTX_SERVER, IID_IDispatch, (LPVOID *) &pShellDisp );
-// Show the desktop
-sc = pShellDisp->ToggleDesktop();
-// Restore the desktop
-sc = pShellDisp->ToggleDesktop();
-pShellDisp->Release();
- */
 
 #pragma endregion
 

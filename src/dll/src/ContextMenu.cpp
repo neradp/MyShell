@@ -134,8 +134,6 @@ struct DWM
 
 inline HMENU GET_HMENU(HWND hWnd) { return SendMSG<HMENU>(hWnd, MN_GETHMENU, 0, 0); }
 
-auto ver = &Nilesoft::Windows::Version::Instance();
-
 #pragma endregion
 
 namespace Nilesoft
@@ -2890,9 +2888,7 @@ namespace Nilesoft
 
 		void ContextMenu::init_cfg()
 		{
-			//SystemParametersInfoForDpi
 			auto sets = &_cache->settings;
-			//auto isW11OrGreater = ver->IsWindows11OrGreater();
 			auto isHighContrast = Theme::IsHighContrast();
 
 			Object obj;
@@ -3046,9 +3042,7 @@ namespace Nilesoft
 				if(transparency.effect == -1)
 				{
 					enableTransparency = true;
-					transparency.effect = 2;
-					if(ver->IsWindows11OrGreater())
-						transparency.effect = 3;
+					transparency.effect = 3;
 				}
 			}
 
@@ -3103,17 +3097,14 @@ namespace Nilesoft
 					else
 					{
 						_theme = is_dark ? Theme::Dark(false, enableTransparency) : Theme::Light(false, enableTransparency);
-						//10240, 10586, 14393, 10593, 16299, 17134
-						//17666 , 19042
-						//ImmersiveStartDark::Menu;ImmersiveStart::Menu
 						_hTheme = _theme.OpenThemeData(hwnd.active, is_dark ? L"DarkMode::Menu" : L"Menu", dpi.val);
 
-						if(_hTheme && ver->IsWindows11OrGreater())
+						if(_hTheme)
 						{
 							Color nor, sel, dis, dis_sel;
 
 							// Special handling for Windows 11 Canary and Dev builds
-							bool isCanaryOrDev = ver->IsWindows11CanaryOrDev();
+							bool isCanaryOrDev = Windows::Version::Instance().IsWindows11CanaryOrDev();
 
 							auto get_bk_clr = [&](Color &clr, int iPartId, int iStateId, int x = -1, int y = -1, int size = 9)->bool
 							{
@@ -4031,7 +4022,6 @@ namespace Nilesoft
 				string::Copy(_theme.font.lfFaceName, L"Segoe UI");
 			}
 
-			if(ver->IsWindows11OrGreater()) 
 			{
 				DWORD dwTextScaleFactor = 100, cbData;
 				::RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Accessibility", 
@@ -5408,10 +5398,6 @@ namespace Nilesoft
 			if(wnd)
 			{
 				wnd->show_layers();
-				//Compositor::TransparentArea(hWnd);
-				// must used sendmsg to invoke initmenupopup
-				//if(ver->IsWindows11OrGreater())
-				//	DWM(hWnd).RemoveCorner();
 			}
 		}
 
@@ -5767,17 +5753,6 @@ namespace Nilesoft
 				if(blurry->handle)
 				{
 					AccentPolicy accent(blurry->handle);
-					// Blur is not useful in high contrast mode
-					// Windows build version less than 16299 does not support acrylic effect
-					// 1903 = 18362
-					// 1803 = 17134
-					// 1709 = 16299
-					// 18362 	TintLuminosityOpacity
-					if(_theme.background.effect >= 3)
-					{
-						if(ver->Major < 10 || (ver->Major == 10 && ver->Build < 17134))
-							_theme.background.effect = 2;
-					}
 
 					uint32_t tintColor = _theme.background.tintcolor;
 

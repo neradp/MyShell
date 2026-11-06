@@ -5,14 +5,6 @@
       <Configuration>release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="release|Win32">
-      <Configuration>release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="release|ARM64">
-      <Configuration>release</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -81,7 +73,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <MinimumRequiredVersion>6.1</MinimumRequiredVersion>
+      <MinimumRequiredVersion>10.0</MinimumRequiredVersion>
       <ModuleDefinitionFile>src\$(TargetName).def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ProgramDatabaseFile>$(OutDir)$(TargetName)$(TargetExt).pdb</ProgramDatabaseFile>
@@ -126,11 +118,6 @@
       <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='release|x64'">false</SuppressStartupBanner>
     </Xdcmake>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
-    <Link>
-      <MinimumRequiredVersion>10.0</MinimumRequiredVersion>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="readme.txt" />
@@ -148,13 +135,10 @@
     <ClInclude Include="src\Expression\LiteralExpression.h" />
     <ClInclude Include="src\Expression\Variable.h" />
     <ClInclude Include="src\Include\Cache.h" />
-    <ClInclude Include="src\Include\RegistryConfig.h" />
     <ClInclude Include="src\Include\Theme.h" />
     <ClInclude Include="src\Include\Keyboard.h" />
     <ClInclude Include="src\Include\Styles.h" />
     <ClInclude Include="src\Include\Tip.h" />
-    <ClInclude Include="src\Include\UTheme.h" />
-    <ClInclude Include="src\Include\win32_hook.h" />
     <ClInclude Include="src\Parser\IdentHash.h" />
     <ClInclude Include="src\Parser\Lexer.h" />
     <ClInclude Include="src\pch.h" />

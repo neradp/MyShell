@@ -107,7 +107,6 @@ namespace Nilesoft
 
 		struct Theme
 		{
-			inline static auto ver = Windows::Version::Instance();
 			static const auto RADIUS = 8;
 
 			struct color_t
@@ -433,13 +432,10 @@ namespace Nilesoft
 				auto th = Default(ThemeType::HighContrast, 2);
 				
 				th.background.color = Color(::GetSysColor(COLOR_WINDOW), 0xFF);
-				if(Windows::Version::Instance().IsWindows11OrGreater())
-				{
-					th.border.radius = 8;
-					th.back.margin = { 4, 4, 4, 4 };
-					th.back.radius = 4;
-					th.tip.radius = 4;
-				}
+				th.border.radius = 8;
+				th.back.margin = { 4, 4, 4, 4 };
+				th.back.radius = 4;
+				th.tip.radius = 4;
 
 				th.shadow.color.opacity(25);
 				th.separator.margin = { 0, 3, 0, 3 };
@@ -557,13 +553,12 @@ namespace Nilesoft
 			static auto Light(bool modern = true, uint8_t enableTransparency = 0)
 			{
 				auto th = Default(ThemeType::Light, 0);
-				auto isw11 = Windows::Version::Instance().IsWindows11OrGreater();
 
 				if(modern)
 				{
 					th = Modern(ThemeType::Light, 0, enableTransparency);
 				}
-				else if(isw11)
+				else
 				{
 					th.separator.color = 0xFFD7D7D7;
 					th.border.color = 0xFFE5E5E5;
@@ -595,22 +590,6 @@ namespace Nilesoft
 						th.separator.color = 0x15FFFFFF;
 					}
 				}
-				else
-				{
-					if(enableTransparency)
-					{
-						th.background.color.a = 0x00;
-						th.background.tintcolor = th.background.color;
-						th.background.tintcolor.a = 0xCF;
-						th.back.color = { 0x00000000, 0x08000000, 0x00000000, 0x05000000 };
-						th.separator.color = 0x15000000;
-					}
-					else
-					{
-						th.background.color = 0xFFF9F9F9;
-						th.back.color = { 0xFFF9F9F9, 0xFFF0F0F0, 0xFFF9F9F9, 0xFFF9F9F9 };
-					}
-				}
 
 				th.shadow.color.a = 0x10;
 				//th.back.border = th.back.color.nor;
@@ -621,7 +600,6 @@ namespace Nilesoft
 			static auto Dark(bool modern = true, uint8_t enableTransparency = 0)
 			{
 				auto th = Default(ThemeType::Dark, 1);
-				auto isw11 = Windows::Version::Instance().IsWindows11OrGreater();
 				th.border.color.opacity(100);
 				if(modern)
 				{
@@ -635,7 +613,7 @@ namespace Nilesoft
 						th.back.color = { 0xFF2C2C2C, 0xFF383838, 0xFF2C2C2C, 0xFF2C2C2C };
 					}
 				}
-				else if(isw11)
+				else
 				{
 					th.separator.color = 0xFF3E3E3E;
 					th.border.color = 0xFF3E3E3E;
@@ -697,22 +675,10 @@ namespace Nilesoft
 
 			static auto White(uint8_t enableTransparency = 0)
 			{
-				Theme th;
-				if(Windows::Version::Instance().IsWindows11OrGreater())
-				{
-					th = Modern(ThemeType::White, 0);
-					th.background.color = 0xFFFFFFFF;
-					th.text.color = { 0xFF000000, 0xFF000000, 0xFF808080, 0xFF808080 };
-					th.back.color = { 0xFFFFFFFF, 0xFFF0F0F0, 0xFFFFFFFF, 0xFFFFFFFF };
-				}
-				else 
-				{
-					th = Default(ThemeType::White, 0);
-					th.border.color = 0xFFE3E3E3;
-					th.background.color = 0xFFFFFFFF;
-					th.text.color = { 0xFF000000, 0xFF000000, 0xFF808080, 0xFF808080 };
-					th.back.color = { 0xFFFFFFFF, 0xFFF0F0F0, 0xFFFFFFFF, 0xFFFFFFFF };
-				}
+				auto th = Modern(ThemeType::White, 0);
+				th.background.color = 0xFFFFFFFF;
+				th.text.color = { 0xFF000000, 0xFF000000, 0xFF808080, 0xFF808080 };
+				th.back.color = { 0xFFFFFFFF, 0xFFF0F0F0, 0xFFFFFFFF, 0xFFFFFFFF };
 
 				if(enableTransparency)
 				{
@@ -743,26 +709,12 @@ namespace Nilesoft
 
 			static auto Black(uint8_t enableTransparency = 0)
 			{
-				Theme th;
-				if(Windows::Version::Instance().IsWindows11OrGreater())
-				{
-					th = Modern(ThemeType::Black, 1);
-					th.background.color = 0xFF000000;
-					th.border.color = th.background.color;
-					th.border.color = 0xFFFFFFFF;
-					th.border.color.opacity(5);
-					th.text.color = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFF808080, 0xFF808080 };
-					th.back.color = { 0xFF000000, 0xFF202020, 0xFF000000, 0xFF000000 };
-				}
-				else 
-				{
-					th = Default(ThemeType::Black, 1);
-					th.border.color = 0xFF111111;
-					th.background.color = 0xFF000000;
-					th.separator.margin = { 8, 3, 8, 3 };
-					th.text.color = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFF808080, 0xFF808080 };
-					th.back.color = { 0xFF000000, 0xFF202020, 0xFF000000, 0xFF000000 };
-				}
+				auto th = Modern(ThemeType::Black, 1);
+				th.background.color = 0xFF000000;
+				th.border.color = 0xFFFFFFFF;
+				th.border.color.opacity(5);
+				th.text.color = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFF808080, 0xFF808080 };
+				th.back.color = { 0xFF000000, 0xFF202020, 0xFF000000, 0xFF000000 };
 
 				if(enableTransparency)
 				{
@@ -899,53 +851,42 @@ namespace Nilesoft
 
 			static bool SystemParameters(uint32_t uiAction, uint32_t uiParam, void* pvParam, uint32_t fWinIni, uint32_t dpi = 96, bool skip_dpi = false)
 			{
-				if(!skip_dpi and ver.IsWindowsVersionOrGreater(10, 0, 14393))
-					return DLL::User32<BOOL>("SystemParametersInfoForDpi", uiAction, uiParam, pvParam, fWinIni, dpi);
+				if(!skip_dpi)
+					return ::SystemParametersInfoForDpi(uiAction, uiParam, pvParam, fWinIni, dpi);
 				return ::SystemParametersInfoW(uiAction, uiParam, pvParam, fWinIni);
 			}
 
 			template<typename T = int>
 			static T SystemMetrics(int nIndex, uint32_t dpi = 96, bool skip_dpi = false)
 			{
-				if(!skip_dpi and ver.IsWindowsVersionOrGreater(10, 0, 14393))
-					return DLL::User32<T>("GetSystemMetricsForDpi", nIndex, dpi);
+				if(!skip_dpi)
+					return static_cast<T>(::GetSystemMetricsForDpi(nIndex, dpi));
 				return static_cast<T>(::GetSystemMetrics(nIndex));
 			}
 
 			static uint32_t GetDpi(HWND hWnd)
 			{
-				if(ver.IsWindowsVersionOrGreater(10, 0, 14393))
-					return DLL::User32<uint32_t>("GetDpiForWindow", hWnd);
-				return (uint32_t)DC(hWnd).GetDeviceCapsX();
+				return ::GetDpiForWindow(hWnd);
 			}
 
 			static uint32_t GetDpi(Point const &pt, HWND hWnd = nullptr)
 			{
-				auto dpiX = 96u, dpiY = 96u;
-				if(ver.IsWindows81OrGreater())
+				if(auto hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST); hMonitor)
 				{
-					if(auto hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST); hMonitor)
-					{
-						if(S_OK == DLL::Invoke<HRESULT>(L"Shcore.dll", "GetDpiForMonitor", hMonitor, 0, &dpiX, &dpiY) && dpiX != 0)
-							return dpiX;
-					}
+					auto dpiX = 96u, dpiY = 96u;
+					if(S_OK == ::GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY) && dpiX != 0)
+						return dpiX;
 				}
 
 				if(hWnd)
-				{
-					if(ver.IsWindowsVersionOrGreater(10, 0, 14393))
-						return DLL::User32<uint32_t>("GetDpiForWindow", hWnd);
-					return (uint32_t)DC(hWnd).GetDeviceCapsY();
-				}
+					return ::GetDpiForWindow(hWnd);
 
-				return dpiX;
+				return 96u;
 			}
 
 			static HTHEME OpenThemeData(HWND hWnd, wchar_t const *pszClassList, uint32_t dpi = 96)
 			{
-				if(ver.IsWindowsVersionOrGreater(10, 0, 14393))
-					return DLL::Invoke<HTHEME>(L"uxtheme.dll", "OpenThemeDataForDpi", hWnd, pszClassList, dpi);
-				return ::OpenThemeData(hWnd, pszClassList);
+				return ::OpenThemeDataForDpi(hWnd, pszClassList, dpi);
 			}
 
 		};

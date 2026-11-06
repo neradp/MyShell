@@ -2,14 +2,6 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="release|ARM64">
-      <Configuration>release</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="release|Win32">
-      <Configuration>release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="release|x64">
       <Configuration>release</Configuration>
       <Platform>x64</Platform>
@@ -91,7 +83,7 @@
       <ProfileGuidedDatabase>$(OutDir)$(TargetName)$(TargetExt).pgd</ProfileGuidedDatabase>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AdditionalOptions>/EMITPOGOPHASEINFO %(AdditionalOptions)</AdditionalOptions>
-      <MinimumRequiredVersion>6.1</MinimumRequiredVersion>
+      <MinimumRequiredVersion>10.0</MinimumRequiredVersion>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='release'">
@@ -100,8 +92,6 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='release|Win32'">MinSpace</Optimization>
-      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='release|Win32'">StdCall</CallingConvention>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -111,16 +101,6 @@
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
-    <Xdcmake>
-      <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</SuppressStartupBanner>
-    </Xdcmake>
-    <Bscmake>
-      <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</SuppressStartupBanner>
-    </Bscmake>
-    <Manifest>
-      <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</SuppressStartupBanner>
-      <VerboseOutput Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</VerboseOutput>
-    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
     <ClCompile>
@@ -129,17 +109,6 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
-    <ClCompile>
-      <PreprocessorDefinitions>_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-    <Link>
-      <MinimumRequiredVersion>10.0</MinimumRequiredVersion>
-    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />

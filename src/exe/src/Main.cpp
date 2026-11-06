@@ -265,7 +265,7 @@ bool Registration(REGOP reg)
 			//IO::Path::Delete(logger->path());
 		}
 
-		if(!ver->IsWindows7OrGreater())
+		if(!ver->IsWindows11OrGreater())
 		{
 			//windows compatibility
 			_log->error(string::Extract(IDS_WINDOWS_COMPATIBILITY));
@@ -291,9 +291,7 @@ bool Registration(REGOP reg)
 
 			if(reg.REGISTER)
 			{
-				//logger->create();
-
-				REGOP regop;
+				REGOP regop{};
 				regop.CONTEXTMENU = regop.ICONOVERLAY = true;
 
 				if(!RegistryConfig::Register(dll_path, regop))
@@ -310,8 +308,7 @@ bool Registration(REGOP reg)
 				
 // HKEY_CLASSES_ROOT\LibraryFolder\ShellEx\ContextMenuHandlers
 // HKEY_CLASSES_ROOT\LibraryFolder\background\shellex\ContextMenuHandlers
-				// is windows 11 or later
-				if(ver->IsWindows11OrGreater() && reg.TREAT)
+				if(reg.TREAT)
 				{
 					//SOFTWARE\\Classes\\CLSID"
 					disable_modern(true);
@@ -336,15 +333,13 @@ bool Registration(REGOP reg)
 					return false;
 				}
 
-				// is windows 11 or later
-				if(ver->IsWindows11OrGreater() && reg.TREAT)
+				if(reg.TREAT)
 					disable_modern(false);
 
 				msg = string::Extract(IDS_UNREGISTER_SUCCESS).move();
 			}
 
-			if(ver->IsWindows8OrGreater())
-				_log->info(msg);
+			_log->info(msg);
 
 			if(reg.RESTART)
 			{
@@ -360,8 +355,7 @@ bool Registration(REGOP reg)
 
 			if(reg.RESTART)
 			{
-				if(ver->IsWindows8OrGreater())
-					_log->info(string::Extract(IDS_RESTART_EXPLORER).move());
+				_log->info(string::Extract(IDS_RESTART_EXPLORER).move());
 
 				if(Windows::Explorer::Restart())
 					::Sleep(1000);
@@ -377,8 +371,7 @@ bool Registration(REGOP reg)
 		}
 		else if(reg.RESTART)
 		{
-			if(ver->IsWindows8OrGreater())
-				_log->info(string::Extract(IDS_RESTART_EXPLORER).move());
+			_log->info(string::Extract(IDS_RESTART_EXPLORER).move());
 			return Windows::Explorer::Restart();
 		}
 	}
@@ -620,12 +613,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 			return 0;
 		}
 
-		auto win = Windows::Version::Instance();
-
-		if(win.IsWindowsVersionOrGreater(10, 0, 14393))
-			_dpi = DLL::User32<uint32_t>("GetSystemDpiForProcess", ::GetCurrentProcess());
-		else
-			_dpi = 96;// DC(GetDesktopWindow()).GetDeviceCapsY();
+		_dpi = ::GetSystemDpiForProcess(::GetCurrentProcess());
+		if(_dpi == 0)
+			_dpi = USER_DEFAULT_SCREEN_DPI;
 
 		_hTheme = ::OpenThemeData(nullptr, L"MENU");
 

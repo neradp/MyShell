@@ -1558,9 +1558,7 @@ namespace Nilesoft
 				}
 				case IDENT_COMMAND:
 				{
-					auto ver = &Version::Instance();
 					auto id = Id[1];
-					auto is11 = ver->IsWindows11OrGreater();
 
 					COM_INITIALIZER com_initializer(true);
 					IComPtr<IShellDispatch6> shellDisp;
@@ -1757,7 +1755,7 @@ namespace Nilesoft
 						case IDENT_ID_INVERT_SELECTION:
 						case IDENT_ID_SELECT_NONE:
 						{
-							auto SFVIDM_SELECT = is11 ? 28706 : 28704;
+							auto SFVIDM_SELECT = 28706;
 							if(id == IDENT_ID_SELECT_ALL)
 								SendCommand(SFVIDM_SELECT + 1);
 							else if(id == IDENT_ID_INVERT_SELECTION)
@@ -3412,8 +3410,6 @@ namespace Nilesoft
 				}
 				case IDENT_PACKAGE:
 				{
-					auto ver = &Version::Instance();
-					if(ver->IsWindows81OrGreater())
 					{
 						const wchar_t *packageFamily = arg0;
 						if(!arg0.empty())
@@ -3424,7 +3420,8 @@ namespace Nilesoft
 							if(res == ERROR_INSUFFICIENT_BUFFER && count > 0)
 							{
 								wchar_t buffer[MAX_PATH] {};
-								auto packageFullNames = new wchar_t[260];
+								// receives a pointer into `buffer`; the API fills it, no allocation needed
+								wchar_t *packageFullNames = nullptr;
 								res = DLL::Kernel32<long>(GetPackagesByPackageFamily, packageFamily, &count, &packageFullNames, &bufferLength, buffer);
 								if(res == ERROR_SUCCESS)
 								{

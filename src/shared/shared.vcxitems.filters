@@ -34,7 +34,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)System\IO\IO.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)System\IO\Path.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Log.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)System\MemoryManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Object.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Security\Elevation.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Security\Permission.h" />
@@ -57,7 +56,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Library\plutosvg.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Library\plutovg.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RegistryConfig.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="$(MSBuildThisFileDirectory)Resource\main.ico" />
