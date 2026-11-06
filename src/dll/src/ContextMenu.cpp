@@ -774,8 +774,12 @@ namespace Nilesoft
 				if(mii->is_item() && _settings.modify_items.keys)
 					_context.Eval(si->keys, mii->keys, true);
 
-				//mii->tip = item->tip;
-				_context.eval_tip(si->tip, mii->tip.text, mii->tip.type, mii->tip.time);
+				if(_context.eval_tip(si->tip, mii->tip.text, mii->tip.type, mii->tip.time))
+				{
+					item->tip.text = mii->tip.text;
+					item->tip.type = mii->tip.type;
+					item->tip.time = mii->tip.time;
+				}
 			};
 
 
@@ -2204,7 +2208,7 @@ namespace Nilesoft
 				::SendMessageW(window, MN_SELECTITEM, 0, 0);
 			PaintToolbar(window);
 			_tip.hide();
-			if(hot >= 0 && _toolbar_sources[hot])
+			if(hot >= 0 && _toolbar_sources[hot] && !_toolbar_sources[hot]->tip.text.empty())
 			{
 				RECT row{};
 				if(::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
@@ -2212,7 +2216,8 @@ namespace Nilesoft
 					Rect rect = MenuToolbar::button_rect(
 						MenuToolbar::content_rect(row, _toolbar.divider_height), hot,
 						dpi(MenuToolbar::padding), dpi(MenuToolbar::button_width), is_layoutRTL != 0);
-					_tip.show(_toolbar_sources[hot]->title, 0, UINT16_MAX, rect);
+					_tip.show(_toolbar_sources[hot]->tip.text, _toolbar_sources[hot]->tip.type,
+						_toolbar_sources[hot]->tip.time, rect);
 				}
 			}
 		}

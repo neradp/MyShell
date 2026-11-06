@@ -85,6 +85,12 @@ namespace Nilesoft
 			MUID *ui = nullptr;
 			string name;
 			string title;
+			struct
+			{
+				uint8_t type{};
+				string text;
+				uint16_t time = UINT16_MAX;
+			} tip;
 			string keys;
 			uint32_t length = 0;
 			int tab = 0;
