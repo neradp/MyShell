@@ -173,6 +173,37 @@ static void runToolbarTests()
 	}
 	check(MenuToolbar::hit_test({0, 0, 8, 8}, {4, 4}, 4, 16, false) == -1,
 		"Collapsed toolbar must not select a command");
+
+	{
+		RECT row{0, 0, 600, 100};
+		int dividerHeight = 1 + 4;
+		RECT content = MenuToolbar::content_rect(row, dividerHeight);
+		check(content.bottom == row.bottom - dividerHeight && content.top == row.top &&
+			content.left == row.left && content.right == row.right,
+			"Divider zone must be reserved below the button area only");
+		auto button = MenuToolbar::button_rect(content, 0, 8, 80, false);
+		check(button.bottom == content.bottom - 8 && button.bottom < row.bottom - dividerHeight,
+			"Buttons must end above the divider line");
+		auto visual = MenuToolbar::visual_rect(button, 4);
+		int separator = MenuToolbar::separator_x(content, 0, 8, 80, false);
+		check(visual.left == button.left + 4 && visual.right == button.right - 4 &&
+			visual.top == button.top && visual.bottom == button.bottom &&
+			separator - visual.right == 4,
+			"Button highlight must keep a gap from the vertical separators");
+		RECT narrow{0, 0, 6, 20};
+		RECT narrowVisual = MenuToolbar::visual_rect(narrow, 4);
+		RECT gapless = MenuToolbar::visual_rect(button, 0);
+		check(::EqualRect(&narrowVisual, &narrow) && ::EqualRect(&gapless, &button),
+			"Gaps must not collapse narrow or gapless buttons");
+		check(MenuToolbar::hit_test(content, {40, row.bottom - 2}, 8, 80, false) == -1,
+			"Clicks on the divider gap must not select a command");
+		check(MenuToolbar::content_rect(row, 0).bottom == row.bottom &&
+			MenuToolbar::content_rect({0, 0, 600, 4}, 10).bottom == 4,
+			"Missing or oversized divider zones must leave the row intact");
+		toolbar.row_height = 80;
+		toolbar.divider_height = dividerHeight;
+		check(toolbar.total_height() == 85, "Menu row must include the divider zone");
+	}
 }
 
 static void runTests()

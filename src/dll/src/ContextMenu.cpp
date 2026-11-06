@@ -2016,6 +2016,8 @@ namespace Nilesoft
 		{
 			_toolbar.id = 0;
 			_toolbar.row_height = dpi(MenuToolbar::height);
+			_toolbar.divider_height = std::max<int>(1, _theme.separator.size) +
+				std::max<int>(0, _theme.separator.margin.bottom);
 			_toolbar.buttons = {};
 			_toolbar_sources = {};
 			_toolbar.hot = _toolbar.selected = -1;
@@ -2122,7 +2124,7 @@ namespace Nilesoft
 				return;
 			}
 			_toolbar.selected = _toolbar.move(-1, 1);
-			_menus[menu].popup_height += _toolbar.row_height;
+			_menus[menu].popup_height += _toolbar.total_height();
 		}
 
 		string ContextMenu::ToolbarLabel(int index) const
@@ -2188,8 +2190,9 @@ namespace Nilesoft
 				return -1;
 			if(GET_HMENU(window) != _hMenu)
 				return -1;
-			return MenuToolbar::hit_test(row, point, dpi(MenuToolbar::padding),
-				dpi(MenuToolbar::button_width), is_layoutRTL != 0);
+			return MenuToolbar::hit_test(MenuToolbar::content_rect(row, _toolbar.divider_height),
+				point, dpi(MenuToolbar::padding), dpi(MenuToolbar::button_width),
+				is_layoutRTL != 0);
 		}
 
 		void ContextMenu::UpdateToolbarHover(HWND window)
@@ -2206,8 +2209,9 @@ namespace Nilesoft
 				RECT row{};
 				if(::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
 				{
-					Rect rect = MenuToolbar::button_rect(row, hot, dpi(MenuToolbar::padding),
-						dpi(MenuToolbar::button_width), is_layoutRTL != 0);
+					Rect rect = MenuToolbar::button_rect(
+						MenuToolbar::content_rect(row, _toolbar.divider_height), hot,
+						dpi(MenuToolbar::padding), dpi(MenuToolbar::button_width), is_layoutRTL != 0);
 					_tip.show(_toolbar_sources[hot]->title, 0, UINT16_MAX, rect);
 				}
 			}
@@ -2221,10 +2225,12 @@ namespace Nilesoft
 			const int buttonWidth = dpi(MenuToolbar::button_width);
 			const int separatorWidth = std::max<int>(1, dpi(1));
 			const int iconSize = std::min<int>(_theme.image.size, dpi(20));
+			const RECT content = MenuToolbar::content_rect(di->rcItem, _toolbar.divider_height);
 			for(int i = 0; i < MenuToolbar::count; ++i)
 			{
-				Rect rect = MenuToolbar::button_rect(di->rcItem, i, inset, buttonWidth,
+				Rect slot = MenuToolbar::button_rect(content, i, inset, buttonWidth,
 					is_layoutRTL != 0);
+				Rect rect = MenuToolbar::visual_rect(slot, dpi(MenuToolbar::button_gap));
 				bool focused = _toolbar.keyboard && (di->itemState & ODS_SELECTED) &&
 					i == _toolbar.selected;
 				bool selected = _toolbar.buttons[i].enabled && (i == _toolbar.hot || focused);
@@ -2243,8 +2249,8 @@ namespace Nilesoft
 				if(!label.empty())
 				{
 					const int labelInset = dpi(MenuToolbar::label_inset);
-					Rect labelRect{rect.left + labelInset, imageRect.bottom + dpi(MenuToolbar::label_gap),
-						rect.right - labelInset, rect.bottom - dpi(MenuToolbar::label_bottom)};
+					Rect labelRect{slot.left + labelInset, imageRect.bottom + dpi(MenuToolbar::label_gap),
+						slot.right - labelInset, rect.bottom - dpi(MenuToolbar::label_bottom)};
 					draw_string(di->hDC, font.handle, &labelRect, color, label,
 						label.length<int>(), MenuToolbar::label_format);
 				}
@@ -2254,17 +2260,18 @@ namespace Nilesoft
 
 				if(i < MenuToolbar::count - 1)
 				{
-					const int boundary = MenuToolbar::separator_x(di->rcItem, i, inset,
+					const int boundary = MenuToolbar::separator_x(content, i, inset,
 						buttonWidth, is_layoutRTL != 0);
 					const int x = is_layoutRTL ? boundary : boundary - separatorWidth;
-					draw_rect(&dc, {x, rect.top + dpi(4)},
-						{separatorWidth, rect.height() - dpi(8)}, _theme.separator.color);
+					draw_rect(&dc, {x, slot.top + dpi(4)},
+						{separatorWidth, slot.height() - dpi(8)}, _theme.separator.color);
 				}
 			}
-			const int dividerY = di->rcItem.bottom - std::max<int>(1, dpi(1));
-			draw_rect(&dc, {di->rcItem.left + _theme.separator.margin.left, dividerY},
+			// Divider sits directly under the buttons; the theme's bottom separator margin stays below it.
+			const int dividerSize = std::max<int>(1, _theme.separator.size);
+			draw_rect(&dc, {di->rcItem.left + _theme.separator.margin.left, content.bottom},
 				{di->rcItem.right - di->rcItem.left - _theme.separator.margin.width(),
-					std::max<int>(1, dpi(1))}, _theme.separator.color);
+					dividerSize}, _theme.separator.color);
 			return TRUE;
 		}
 
@@ -2786,7 +2793,7 @@ namespace Nilesoft
 			{
 				mi->itemWidth = dpi(MenuToolbar::padding * 2 +
 					MenuToolbar::button_width * MenuToolbar::count);
-				mi->itemHeight = _toolbar.row_height;
+				mi->itemHeight = _toolbar.total_height();
 				return TRUE;
 			}
 			

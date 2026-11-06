@@ -12,6 +12,7 @@ namespace Nilesoft::Shell
 		static constexpr int padding = 8;
 		static constexpr int height = 80;
 		static constexpr int label_inset = 8;
+		static constexpr int button_gap = 4;
 		static constexpr int icon_top = 8;
 		static constexpr int label_gap = 3;
 		static constexpr int label_bottom = 4;
@@ -25,6 +26,7 @@ namespace Nilesoft::Shell
 		std::array<Button, count> buttons{};
 		UINT id = 0;
 		int row_height = 0;
+		int divider_height = 0;
 		int hot = -1;
 		int selected = -1;
 		bool enabled = false;
@@ -41,6 +43,29 @@ namespace Nilesoft::Shell
 		{
 			const int required = 2 * inset + top + iconSize + gap + textHeight + bottom;
 			return required > minimum ? required : minimum;
+		}
+
+		// Button area of the menu row; the divider line and its bottom margin sit below it.
+		static RECT content_rect(const RECT &row, int dividerHeight)
+		{
+			RECT content = row;
+			if(dividerHeight > 0 && row.bottom - dividerHeight > row.top)
+				content.bottom = row.bottom - dividerHeight;
+			return content;
+		}
+
+		int total_height() const { return row_height + divider_height; }
+
+		// Highlight/focus area of a button slot, kept clear of the vertical separators on both sides.
+		static RECT visual_rect(const RECT &slot, int gap)
+		{
+			RECT rect = slot;
+			if(gap > 0 && slot.right - slot.left > 2 * gap)
+			{
+				rect.left += gap;
+				rect.right -= gap;
+			}
+			return rect;
 		}
 
 		bool hover(int index)

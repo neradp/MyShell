@@ -88,7 +88,8 @@ not added to taskbar, Start, or edit-control menus.
   other items make the menu wider. Labels appear under each icon, with vertical
   separators between buttons and a horizontal divider below the toolbar. Labels
   have room around the separators and wrap when needed; the row grows to fit
-  their text.
+  their text. The divider keeps the theme's separator margin below it, and the
+  button highlight stays clear of the vertical separators.
 - Moving the mouse highlights the enabled button under the pointer.
 - Hovering over a recognized action displays its localized title.
 - Use Up/Down to select the toolbar row, Left/Right to choose a button, and
