@@ -86,7 +86,8 @@ not added to taskbar, Start, or edit-control menus.
 - Icons use NSS image definitions, theme colors, and `theme.image.size`.
 - Buttons have a fixed width and stay aligned to the menu's leading edge as
   other items make the menu wider. Labels appear under each icon, with vertical
-  separators between buttons and a horizontal divider below the toolbar.
+  separators between buttons and a horizontal divider below the toolbar. Labels
+  have room around the separators and wrap when needed.
 - Moving the mouse highlights the enabled button under the pointer.
 - Hovering over a recognized action displays its localized title.
 - Use Up/Down to select the toolbar row, Left/Right to choose a button, and

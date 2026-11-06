@@ -2202,11 +2202,12 @@ namespace Nilesoft
 					_toolbar_icons[i].ui->get_title() : string{};
 				if(!label.empty())
 				{
-					Rect labelRect{rect.left + dpi(2), imageRect.bottom + dpi(3),
-						rect.right - dpi(2), rect.bottom - dpi(10)};
+					const int labelInset = dpi(8);
+					Rect labelRect{rect.left + labelInset, imageRect.bottom + dpi(3),
+						rect.right - labelInset, rect.bottom - dpi(10)};
 					draw_string(di->hDC, font.handle, &labelRect, color, label,
 						label.length<int>(), DT_CENTER | DT_VCENTER | DT_WORDBREAK |
-						DT_NOPREFIX | DT_EDITCONTROL);
+						DT_EDITCONTROL);
 				}
 
 				if(focused && !(di->itemState & ODS_NOFOCUSRECT))
