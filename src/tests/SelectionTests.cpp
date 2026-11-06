@@ -84,33 +84,59 @@ static void runToolbarTests()
 
 	for(int dpi : {96, 144, 192, 288})
 	{
-		int padding = ::MulDiv(4, dpi, 96);
-		RECT row{-300, 70, -300 + ::MulDiv(223, dpi, 96), 70 + ::MulDiv(44, dpi, 96)};
+		int padding = ::MulDiv(MenuToolbar::padding, dpi, 96);
+		int buttonWidth = ::MulDiv(MenuToolbar::button_width, dpi, 96);
+		RECT row{-300, 70, -300 + ::MulDiv(560, dpi, 96),
+			70 + ::MulDiv(MenuToolbar::height, dpi, 96)};
 		for(bool rtl : {false, true})
 		{
+			int buttonsLeft = rtl ? row.right - padding - MenuToolbar::count * buttonWidth :
+				row.left + padding;
+			int buttonsRight = rtl ? row.right - padding :
+				row.left + padding + MenuToolbar::count * buttonWidth;
 			for(int i = 0; i < MenuToolbar::count; ++i)
 			{
-				auto button = MenuToolbar::button_rect(row, i, padding, rtl);
+				auto button = MenuToolbar::button_rect(row, i, padding, buttonWidth, rtl);
 				POINT center{(button.left + button.right) / 2, (button.top + button.bottom) / 2};
-				check(MenuToolbar::hit_test(row, center, padding, rtl) == i,
+				check(MenuToolbar::hit_test(row, center, padding, buttonWidth, rtl) == i,
 					"Drawn buttons and hit testing must agree at each DPI and in RTL");
-				toolbar.hover(MenuToolbar::hit_test(row, center, padding, rtl));
+				toolbar.hover(MenuToolbar::hit_test(row, center, padding, buttonWidth, rtl));
 				check(toolbar.hot == i && !toolbar.keyboard,
 					"Mouse motion must track each drawn button at every DPI and in RTL");
 				check(button.left >= row.left + padding && button.right <= row.right - padding,
 					"Buttons must fit the menu row");
+				check(button.right - button.left == buttonWidth,
+					"Toolbar buttons must retain a fixed width as the menu grows");
+				if(!rtl)
+					check(button.left == row.left + padding + i * buttonWidth,
+						"LTR buttons must remain anchored to the left menu edge");
+				else
+					check(button.right == row.right - padding - i * buttonWidth,
+						"RTL buttons must remain anchored to the right menu edge");
+
+				if(i < MenuToolbar::count - 1)
+				{
+					int separator = MenuToolbar::separator_x(row, i, padding, buttonWidth, rtl);
+					auto next = MenuToolbar::button_rect(row, i + 1, padding, buttonWidth, rtl);
+					check(separator == (rtl ? next.right : button.right),
+						"Vertical separators must sit between adjacent buttons");
+				}
 			}
-			check(MenuToolbar::hit_test(row, {row.left, row.top}, padding, rtl) == -1 &&
-				MenuToolbar::hit_test(row, {row.right, row.bottom}, padding, rtl) == -1,
+			check(buttonsRight - buttonsLeft == MenuToolbar::count * buttonWidth &&
+				row.right - row.left > buttonsRight - buttonsLeft + 2 * padding,
+				"Toolbar buttons must not stretch to fill a wider menu");
+			check(MenuToolbar::hit_test(row, {row.left, row.top}, padding, buttonWidth, rtl) == -1 &&
+				MenuToolbar::hit_test(row, {row.right, row.bottom}, padding, buttonWidth, rtl) == -1,
 				"Toolbar padding and outside clicks must not select a command");
-			auto first = MenuToolbar::button_rect(row, rtl ? 4 : 0, padding, rtl);
-			auto second = MenuToolbar::button_rect(row, rtl ? 3 : 1, padding, rtl);
-			check(first.right == second.left &&
-				MenuToolbar::hit_test(row, {first.right, first.top}, padding, rtl) ==
-					(rtl ? 3 : 1), "Shared edges must belong to exactly one button");
+			auto first = MenuToolbar::button_rect(row, 0, padding, buttonWidth, rtl);
+			auto second = MenuToolbar::button_rect(row, 1, padding, buttonWidth, rtl);
+			POINT shared{rtl ? first.left : first.right, first.top + 1};
+			check((rtl ? second.right == first.left : first.right == second.left) &&
+				MenuToolbar::hit_test(row, shared, padding, buttonWidth, rtl) == (rtl ? 0 : 1),
+				"Shared edges must belong to exactly one button");
 		}
 	}
-	check(MenuToolbar::hit_test({0, 0, 8, 8}, {4, 4}, 4, false) == -1,
+	check(MenuToolbar::hit_test({0, 0, 8, 8}, {4, 4}, 4, 16, false) == -1,
 		"Collapsed toolbar must not select a command");
 }
 

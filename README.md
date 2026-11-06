@@ -12,6 +12,7 @@ integration and an optional Windows 11-style file-action toolbar.
 - Retain the original Explorer and taskbar integration, including compatibility
   with StartAllBack.
 - Add an optional horizontal toolbar with **Cut, Copy, Paste, Rename, Delete**.
+- Keep toolbar buttons compact and edge-aligned, with labels and separators.
 - Use the host's original file commands, clipboard behavior, and confirmation
   dialogs.
 
@@ -83,6 +84,9 @@ and background menus when the host provides a recognized file action. It is
 not added to taskbar, Start, or edit-control menus.
 
 - Icons use NSS image definitions, theme colors, and `theme.image.size`.
+- Buttons have a fixed width and stay aligned to the menu's leading edge as
+  other items make the menu wider. Labels appear under each icon, with vertical
+  separators between buttons and a horizontal divider below the toolbar.
 - Moving the mouse highlights the enabled button under the pointer.
 - Hovering over a recognized action displays its localized title.
 - Use Up/Down to select the toolbar row, Left/Right to choose a button, and
