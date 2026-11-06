@@ -2036,11 +2036,10 @@ namespace Nilesoft
 				IDENT_ID_RENAME, IDENT_ID_DELETE};
 			auto collect = [&](auto &&self, menuitem_t *node) -> void
 			{
+				// Prefer this menu's commands over actions targeting a folder in a submenu.
 				for(auto item : node->items)
 				{
-					if(item->is_menu())
-						self(self, item);
-					else if(!item->is_separator())
+					if(!item->is_menu() && !item->is_separator())
 					{
 						for(int i = 0; i < MenuToolbar::count; ++i)
 						{
@@ -2053,6 +2052,9 @@ namespace Nilesoft
 						}
 					}
 				}
+				for(auto item : node->items)
+					if(item->is_menu())
+						self(self, item);
 			};
 			collect(collect, __system_menu_tree);
 			if(std::none_of(_toolbar_sources.begin(), _toolbar_sources.end(),
@@ -4669,7 +4671,7 @@ namespace Nilesoft
 				if(!Selected.loader.explorer && !hasShellSelection)
 					_log.warning(L"No selection helper matched popup (process %s, thread %lu, menu %p).",
 						initializer->process.name.c_str(), ::GetCurrentThreadId(), _hMenu_original);
-				if(!Selected.QueryShellWindow() && (!hasShellSelection || Selected.loader.explorer))
+				if(!Selected.QueryShellWindow() && !hasShellSelection)
 				{
 					if(!Selected.loader.explorer)
 						_log.warning(L"Third-party popup rejected by window classification (process %s, owner %p).",
@@ -4719,7 +4721,7 @@ namespace Nilesoft
 					default:
 						if(!Selected.QuerySelected())
 						{
-							if(hasShellSelection && !Selected.loader.explorer &&
+							if(hasShellSelection &&
 								Selected.Window.parent != WINDOW_TASKBAR &&
 								Selected.Window.id != WINDOW_EDIT &&
 								!Selected.QuerySelectedWithShellExt(shellSelection))

@@ -9,6 +9,8 @@ integration and an optional Windows 11-style file-action toolbar.
 - Customize menu items, submenus, icons, and themes using NSS configuration.
 - Capture file selections in applications that use Windows Shell context menus,
   including Total Commander, Everything, and EverythingToolbar.
+- Support EverythingToolbar's deskband inside Explorer using the captured
+  Shell selection when no Explorer folder view is available.
 - Retain the original Explorer and taskbar integration, including compatibility
   with StartAllBack.
 - Add an optional horizontal toolbar with **Cut, Copy, Paste, Rename, Delete**.
@@ -95,6 +97,8 @@ not added to taskbar, Start, or edit-control menus.
 - Use Up/Down to select the toolbar row, Left/Right to choose a button, and
   Enter to invoke it.
 - Missing or disabled host actions are greyed out.
+- Actions in the main menu take precedence over submenu actions, including
+  Everything's folder menu in the Path column.
 - Matching native text commands are hidden while the toolbar is present.
   Custom commands and submenus are preserved.
 - Set `toolbar.enabled = false` to restore the normal text-command behavior.
