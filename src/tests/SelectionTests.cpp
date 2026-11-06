@@ -60,6 +60,20 @@ static void runToolbarTests()
 	check(toolbar.move(-1, 1) == 0 && toolbar.move(-1, -1) == 4 &&
 		toolbar.move(1, 1) == 4 && toolbar.move(4, 1) == 0 &&
 		toolbar.move(0, -1) == 4, "Keyboard navigation must skip disabled buttons and wrap");
+	toolbar.keyboard = true;
+	toolbar.selected = 0;
+	check(toolbar.hover(1) && toolbar.hot == 1 && toolbar.selected == 1 && !toolbar.keyboard,
+		"Mouse hover must move the active button and clear keyboard focus");
+	check(!toolbar.hover(1), "Stationary hover must not request another repaint");
+	toolbar.keyboard = true;
+	check(toolbar.hover(1) && !toolbar.keyboard,
+		"Returning to mouse input on the same button must clear keyboard focus");
+	check(toolbar.hover(2) && toolbar.hot == 2 && toolbar.selected == 1 &&
+		toolbar.command(toolbar.hot) == 0, "Disabled hover must not activate a command");
+	check(toolbar.hover(4) && toolbar.selected == 4 && toolbar.command(toolbar.selected) == 105,
+		"Moving between enabled buttons must update the eventual command");
+	check(toolbar.hover(-1) && toolbar.hot == -1 && !toolbar.keyboard,
+		"Leaving the toolbar must clear hover without showing a keyboard focus frame");
 
 	for(int dpi : {96, 144, 192, 288})
 	{
@@ -73,6 +87,9 @@ static void runToolbarTests()
 				POINT center{(button.left + button.right) / 2, (button.top + button.bottom) / 2};
 				check(MenuToolbar::hit_test(row, center, padding, rtl) == i,
 					"Drawn buttons and hit testing must agree at each DPI and in RTL");
+				toolbar.hover(MenuToolbar::hit_test(row, center, padding, rtl));
+				check(toolbar.hot == i && !toolbar.keyboard,
+					"Mouse motion must track each drawn button at every DPI and in RTL");
 				check(button.left >= row.left + padding && button.right <= row.right - padding,
 					"Buttons must fit the menu row");
 			}

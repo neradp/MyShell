@@ -2051,14 +2051,26 @@ namespace Nilesoft
 				[](auto item) { return item != nullptr; }))
 				return;
 
-			font.toolbar.reset();
-			font.toolbar.Name = L"Segoe MDL2 Assets";
-			font.toolbar.Size = dpi(18);
-			font.toolbar.create();
-			if(!font.toolbar)
+			for(int i = 0; i < MenuToolbar::count; ++i)
 			{
-				_log.warning(L"Cannot create context-menu toolbar font.");
-				return;
+				auto &icon = _toolbar_icons[i];
+				icon.image.destroy();
+				icon.ui = _toolbar_sources[i] && _toolbar_sources[i]->ui ?
+					_toolbar_sources[i]->ui : Initializer::get_muid(operations[i]);
+				icon.image.expr = _cache->get_image(operations[i]);
+				this_item action{};
+				action.id = operations[i];
+				action.system = true;
+				action.disabled = !_toolbar.buttons[i].enabled;
+				if(_toolbar_sources[i])
+					action.title = _toolbar_sources[i]->title;
+				auto previous = _context._this;
+				_context._this = &action;
+				bool loaded = _context.Image(nullptr, &icon, font.icon, false);
+				_context._this = previous;
+				if(!loaded)
+					_log.warning(L"Cannot load context-menu toolbar icon (action 0x%08X).",
+						operations[i]);
 			}
 
 			MENUITEMINFOW item = {sizeof(item)};
@@ -2092,12 +2104,11 @@ namespace Nilesoft
 		void ContextMenu::UpdateToolbarHover(HWND window)
 		{
 			int hot = ToolbarHitTest(window);
-			if(hot == _toolbar.hot)
+			if(!_toolbar.hover(hot))
 				return;
-			_toolbar.hot = hot;
-			if(_toolbar.command(hot))
-				_toolbar.selected = hot;
-			::InvalidateRect(window, nullptr, FALSE);
+			if(hot >= 0 && current.selectitem_pos != 0)
+				::SendMessageW(window, MN_SELECTITEM, 0, 0);
+			PaintToolbar(window);
 			_tip.hide();
 			if(hot >= 0 && _toolbar_sources[hot])
 			{
@@ -2114,11 +2125,10 @@ namespace Nilesoft
 		{
 			DC dc = di->hDC;
 			dc.fill_rect(di->rcItem, composition ? dc.stock_brush(BLACK_BRUSH) : _hbackground);
-			constexpr wchar_t glyphs[] = {L'\uE8C6', L'\uE8C8', L'\uE77F', L'\uE8AC', L'\uE74D'};
 			for(int i = 0; i < MenuToolbar::count; ++i)
 			{
 				Rect rect = MenuToolbar::button_rect(di->rcItem, i, dpi(4), is_layoutRTL != 0);
-				bool focused = (di->itemState & ODS_SELECTED) && _toolbar.hot < 0 &&
+				bool focused = _toolbar.keyboard && (di->itemState & ODS_SELECTED) &&
 					i == _toolbar.selected;
 				bool selected = _toolbar.buttons[i].enabled && (i == _toolbar.hot || focused);
 				if(selected)
@@ -2126,12 +2136,102 @@ namespace Nilesoft
 						_theme.back.border.sel, _theme.back.radius);
 				auto color = !_toolbar.buttons[i].enabled ? _theme.text.color.nor_dis :
 					selected ? _theme.text.color.sel : _theme.text.color.nor;
-				draw_string(di->hDC, font.toolbar, &rect, color, &glyphs[i], 1,
-					DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+				long size = _theme.image.size;
+				Rect imageRect{rect.left + (rect.width() - size) / 2,
+					rect.top + (rect.height() - size) / 2, 0, 0};
+				imageRect.right = imageRect.left + size;
+				imageRect.bottom = imageRect.top + size;
+				DrawMenuImage(dc, _toolbar_icons[i].image, imageRect, color,
+					!_toolbar.buttons[i].enabled);
 				if(focused && !(di->itemState & ODS_NOFOCUSRECT))
 					::DrawFocusRect(di->hDC, &rect);
 			}
 			return TRUE;
+		}
+
+		void ContextMenu::DrawMenuImage(DC &dc, MenuItemInfo::IMAGE &image, const Rect &rect,
+			const Color &textColor, bool disabled)
+		{
+			if(image.hbitmap)
+			{
+				SIZE size = image.size;
+				if(size.cx <= 0 || size.cy <= 0)
+					return;
+				long limit = std::min(rect.width(), rect.height());
+				if(size.cx > limit || size.cy > limit)
+				{
+					long largest = std::max(size.cx, size.cy);
+					size = {::MulDiv(size.cx, limit, largest), ::MulDiv(size.cy, limit, largest)};
+				}
+				POINT point{rect.left + (rect.width() - size.cx) / 2,
+					rect.top + (rect.height() - size.cy) / 2};
+				bool smallSvg = image.import == ImageImport::SVG &&
+					size.cx <= dpi(16) && size.cy <= dpi(16);
+				if(smallSvg)
+					dc.draw_image(point, size, image.hbitmap, {0, 0}, image.size, disabled ? 48 : 192);
+				dc.draw_image(point, size, image.hbitmap, {0, 0}, image.size, disabled ? 64 : 255);
+			}
+			else if(image.import == ImageImport::Draw &&
+				image.draw.type == MenuItemInfo::IMAGE::draw_t::DT_GLYPH)
+			{
+				auto &glyph = image.draw.glyph;
+				if(!glyph.font || glyph.size.cx <= 0 || glyph.size.cy <= 0)
+					return;
+				Color colors[] = {glyph.color[0], glyph.color[1]};
+				if(!colors[0])
+					colors[0] = _theme.image.color[0] ? _theme.image.color[0] :
+						disabled && _theme.text.color.nor_dis ? _theme.text.color.nor_dis : textColor;
+				if(!colors[1])
+					colors[1] = _theme.image.color[0] ? _theme.image.color[1] : textColor;
+				for(int i = 0; i < 2; ++i)
+				{
+					if(disabled)
+						colors[i].opacities();
+					if(glyph.code[i])
+						draw_string(dc, glyph.font, &rect, colors[i], &glyph.code[i], 1,
+							DT_CENTER | DT_NOCLIP | DT_SINGLELINE | DT_VCENTER);
+				}
+			}
+		}
+
+		void ContextMenu::PaintToolbar(HWND window)
+		{
+			RECT row{};
+			if(!_toolbar.id || GET_HMENU(window) != _hMenu ||
+				!::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
+				return;
+			::MapWindowPoints(nullptr, window, reinterpret_cast<POINT *>(&row), 2);
+			HDC dc = ::GetDC(window);
+			if(!dc)
+				return;
+			DRAWITEMSTRUCT item{};
+			item.CtlType = ODT_MENU;
+			item.itemID = _toolbar.id;
+			item.itemAction = ODA_DRAWENTIRE;
+			item.itemState = current.hWnd == window && current.selectitem_pos == 0 ?
+				ODS_SELECTED : 0;
+			item.hwndItem = reinterpret_cast<HWND>(_hMenu);
+			item.hDC = dc;
+			item.rcItem = row;
+			DrawToolbar(&item);
+			::ReleaseDC(window, dc);
+		}
+
+		LRESULT CALLBACK ContextMenu::MenuMouseProc(int code, WPARAM wParam, LPARAM lParam)
+		{
+			// The native menu loop consumes mouse moves before normal window dispatch.
+			if(code == MSGF_MENU && reinterpret_cast<MSG *>(lParam)->message == WM_MOUSEMOVE)
+			{
+				::EnumThreadWindows(::GetCurrentThreadId(), [](HWND window, LPARAM) -> BOOL
+				{
+					auto ctx = ContextMenu::Prop::Get(window);
+					if(ctx && ctx->_toolbar.id && Window::IsPopupMenu(window) &&
+						GET_HMENU(window) == ctx->_hMenu)
+						ctx->UpdateToolbarHover(window);
+					return TRUE;
+				}, 0);
+			}
+			return WindowsHook::CallNext(nullptr, code, wParam, lParam);
 		}
 
 		LRESULT ContextMenu::OnDrawItem(DRAWITEMSTRUCT *di)
@@ -2413,27 +2513,8 @@ namespace Nilesoft
 
 				if(image->hbitmap)
 				{
-					DC memDC(::CreateCompatibleDC(dc), 1);
-					if(memDC)
-					{
-						if(memDC.select_bitmap(image->hbitmap))
-						{
-							Rect rcim = { rcimg.left + ((image_size - image->size.cx) / 2),
-								(rcblock.top + (rcblock.bottom - image->size.cy)) / 2,
-								image->size.cx, image->size.cy };
-							
-							//if(image->bitsPixel < 32)
-							//	dc.bitblt({ rcim.left,rcim.top,size.cx,size.cy }, memDC, 0, 0);
-							//else
-							{
-								bool is_16 = image->size.cx <= dpi(16) && image->size.cy <= dpi(16);
-								if(image->import == ImageImport::SVG && is_16)
-									dc.draw_image(rcim.point(), image->size, memDC, state.disabled ? 48 : 192);
-								dc.draw_image(rcim.point(), image->size, memDC, state.disabled ? 64 : 255);
-							}
-							memDC.reset_bitmap();
-						}
-					}
+					Rect imageRect{rcimg.left, rcblock.top, rcimg.left + image_size, rcblock.bottom};
+					DrawMenuImage(dc, *image, imageRect, text_color, state.disabled);
 				}
 				else if(image->import == ImageImport::Draw)
 				{
@@ -2488,45 +2569,7 @@ namespace Nilesoft
 							rcimg.right -= 3;
 						}
 
-						auto g = &draw->glyph;
-						size = { g->size.cx, g->size.cy };
-						if(size.cx > 0 && size.cy > 0 && g->font)
-						{
-							if(size.cx > image_size) size.cx = image_size;
-							if(size.cy > image_size) size.cy = image_size;
-							
-							color_[0] = g->color[0];
-							color_[1] = g->color[1];
-
-							if(!color_[0])
-							{
-								if(_theme.image.color[0])
-									color_[0] = _theme.image.color[0];
-								else
-								{
-									if(state.disabled && (_theme.text.color.nor_dis))
-										color_[0] = _theme.text.color.nor_dis;
-									else
-										color_[0] = text_color;
-								}
-							}
-
-							if(!color_[1])
-								color_[1] = _theme.image.color[0] ? _theme.image.color[1] : text_color;
-
-							if(state.disabled)
-							{
-								color_[0].opacities();
-								color_[1].opacities();
-							}
-
-							auto txtfmt = DT_NOCLIP | DT_SINGLELINE | DT_VCENTER;
-							if(g->code[0])
-								draw_string(dc, g->font, &rcimg, color_[0], &g->code[0], 1, DT_CENTER | txtfmt);
-
-							if(g->code[1])
-								draw_string(dc, g->font, &rcimg, color_[1], &g->code[1], 1, DT_CENTER | txtfmt);
-						}
+						DrawMenuImage(dc, *image, rcimg, text_color, state.disabled);
 					}
 				}
 			}
@@ -4614,6 +4657,12 @@ namespace Nilesoft
 						_toolbar.enabled = false;
 					}
 				}
+				if(_toolbar.enabled && !_menuMouseHook.hook(WH_MSGFILTER, MenuMouseProc, ThreadId))
+				{
+					_log.warning(L"Cannot install context-menu toolbar mouse hook (error %lu).",
+						::GetLastError());
+					_toolbar.enabled = false;
+				}
 
 				hCursor = ::LoadCursorW(nullptr, IDC_ARROW);
 
@@ -4695,6 +4744,7 @@ namespace Nilesoft
 				}
 
 				_keyboardHook.unhook();
+				_menuMouseHook.unhook();
 				
 				if(_winEventHook)
 				{
@@ -6062,6 +6112,8 @@ namespace Nilesoft
 				case WM_PAINT:
 				{
 					lret = defSubclassProc();
+					if(wnd->hMenu == ctx->_hMenu && ctx->_toolbar.id)
+						ctx->PaintToolbar(hWnd);
 					//auto_gdi<HBRUSH> _hblack(CreateSolidBrush(0x000000));
 					//::FillRect(wnd->hdc, &wnd->rect, _hblack.get());
 
@@ -6429,7 +6481,7 @@ namespace Nilesoft
 						direction = -direction;
 					ctx->_toolbar.selected = ctx->_toolbar.move(ctx->_toolbar.selected, direction);
 					ctx->_tip.hide();
-					::InvalidateRect(window, nullptr, FALSE);
+					ctx->PaintToolbar(window);
 					event.handled = true;
 					return FALSE;
 				}, reinterpret_cast<LPARAM>(&event));

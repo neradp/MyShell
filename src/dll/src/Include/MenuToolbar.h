@@ -21,6 +21,16 @@ namespace Nilesoft::Shell
 		bool enabled = false;
 		bool keyboard = false;
 
+		bool hover(int index)
+		{
+			bool changed = hot != index || keyboard;
+			hot = index;
+			keyboard = false;
+			if(command(index))
+				selected = index;
+			return changed;
+		}
+
 		static RECT button_rect(const RECT &row, int index, int padding, bool rtl)
 		{
 			if(rtl)

@@ -549,7 +549,6 @@ plutovg_move_to(pluto, start.x, start.y);
 				LOGFONTW menu{};
 				Font icon;
 				Font icon10;
-				Font toolbar;
 			}font;
 
 			struct symbole_tag 
@@ -672,6 +671,7 @@ plutovg_move_to(pluto, start.x, start.y);
 
 			WinEventHook _winEventHook;
 			WindowsHook _keyboardHook;
+			WindowsHook _menuMouseHook;
 			WindowSubclass _windowSubclass;
 
 			Theme _theme;
@@ -688,6 +688,7 @@ plutovg_move_to(pluto, start.x, start.y);
 			Tip _tip;
 			MenuToolbar _toolbar;
 			std::array<menuitem_t *, MenuToolbar::count> _toolbar_sources{};
+			std::array<MenuItemInfo, MenuToolbar::count> _toolbar_icons{};
 			string _screenshot;
 
 			HINSTANCE hInstance{};
@@ -733,6 +734,10 @@ plutovg_move_to(pluto, start.x, start.y);
 			LRESULT DrawToolbar(DRAWITEMSTRUCT *di);
 			int ToolbarHitTest(HWND window) const;
 			void UpdateToolbarHover(HWND window);
+			void PaintToolbar(HWND window);
+			static LRESULT CALLBACK MenuMouseProc(int code, WPARAM wParam, LPARAM lParam);
+			void DrawMenuImage(DC &dc, MenuItemInfo::IMAGE &image, const Rect &rect,
+				const Color &textColor, bool disabled);
 
 			LRESULT OnDrawItem_D2D(DRAWITEMSTRUCT *di);
 

@@ -35,14 +35,17 @@ Buttons dispatch the original host command, retaining its clipboard behavior,
 confirmation dialogs, and selection semantics. The toolbar takes its actions
 from the original host menu independently of NSS rules that move or remove
 text entries. Original text entries are not removed by the toolbar itself.
+Icons use the same NSS image definitions, two-color glyph palette, and
+`theme.image.size` as normal menu entries rather than a separate white icon font.
 
-Hover over an available host action for its localized title. Use Up/Down to
+Moving the mouse highlights the enabled button under the pointer and clears
+the keyboard focus frame. Hover over an available host action for its localized title. Use Up/Down to
 select the toolbar row, Left/Right to choose an enabled button, and Enter to
 invoke it. Existing text commands remain the accessible alternative for
 screen readers and normal menu shortcuts. Button geometry scales with DPI
 and reverses in right-to-left menus.
 
-GitHub runs toolbar geometry, disabled-command, native-ID, and keyboard
+GitHub runs toolbar geometry, hover/focus transitions, disabled-command, native-ID, and keyboard
 navigation tests alongside selection tests. Interactive rendering, mouse
 dispatch, and host behavior still require testing with the resulting DLL.
 
