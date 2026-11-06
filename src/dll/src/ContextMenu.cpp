@@ -2093,7 +2093,7 @@ namespace Nilesoft
 								label.length<int>(), labelWidth);
 							if(!textHeight)
 								_log.warning(L"Cannot measure context-menu toolbar label %d.", i);
-							maxLabelHeight = std::max(maxLabelHeight, textHeight);
+							maxLabelHeight = std::max<int>(maxLabelHeight, textHeight);
 						}
 					}
 					_toolbar.row_height = MenuToolbar::required_row_height(
