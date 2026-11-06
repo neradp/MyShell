@@ -943,6 +943,9 @@ namespace Nilesoft
 			SETTING _settings = { CONFIG_SETTINGS, &sets->priority, {
 				{ IDENT_PRIORITY, &sets->priority },
 				{ IDENT_SHOWDELAY, &sets->showdelay },
+				{ IDENT_TOOLBAR, &sets->toolbar, {
+					{ IDENT_ENABLED, &sets->toolbar }
+				}},
 				{ IDENT_SCREENSHOT, &sets->screenshot.enabled,{
 					{ IDENT_ENABLED, &sets->screenshot.enabled },
 					{ IDENT_DIRECTORY, &sets->screenshot.directory }

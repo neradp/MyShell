@@ -387,6 +387,7 @@ namespace Nilesoft
 
 
 		constexpr auto IDENT_SHOWDELAY = 0xBE22D115U;
+		constexpr auto IDENT_TOOLBAR = 0xF0254958U;
 		constexpr auto IDENT_SCREENSHOT = 0x9A37F083U;
 		constexpr auto IDENT_PRIORITY = 0x1CF615A7U;
 

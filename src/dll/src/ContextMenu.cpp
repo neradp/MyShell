@@ -1489,6 +1489,9 @@ namespace Nilesoft
 
 			dc.reset_font();
 
+			if(menu->is_main)
+				BuildToolbar(hMenu);
+
 			long image__size = _theme.image.size;
 			if(menu->draw.height < image__size)
 				menu->draw.height = image__size;
@@ -2008,9 +2011,134 @@ namespace Nilesoft
 
 		int ooo = 0;
 
+		void ContextMenu::BuildToolbar(HMENU menu)
+		{
+			_toolbar.id = 0;
+			_toolbar.buttons = {};
+			_toolbar_sources = {};
+			_toolbar.hot = _toolbar.selected = -1;
+			_toolbar.keyboard = false;
+			if(!_toolbar.enabled || Selected.Window.isTaskbar() ||
+				Selected.Window.id == WINDOW_START || Selected.Window.id == WINDOW_EDIT ||
+				!(Selected.count.FILE || Selected.count.DIRECTORY || Selected.count.DRIVE ||
+					Selected.Background))
+				return;
+
+			constexpr uint32_t operations[] = {IDENT_ID_CUT, IDENT_ID_COPY, IDENT_ID_PASTE,
+				IDENT_ID_RENAME, IDENT_ID_DELETE};
+			auto collect = [&](auto &&self, menuitem_t *node) -> void
+			{
+				for(auto item : node->items)
+				{
+					if(item->is_menu())
+						self(self, item);
+					else if(!item->is_separator())
+					{
+						for(int i = 0; i < MenuToolbar::count; ++i)
+						{
+							if(item->uid() == operations[i] && !_toolbar_sources[i] &&
+								item->wid != 0 && item->wid != UINT_MAX)
+							{
+								_toolbar_sources[i] = item;
+								_toolbar.buttons[i] = {item->wid, !item->disabled};
+							}
+						}
+					}
+				}
+			};
+			collect(collect, __system_menu_tree);
+			if(std::none_of(_toolbar_sources.begin(), _toolbar_sources.end(),
+				[](auto item) { return item != nullptr; }))
+				return;
+
+			font.toolbar.reset();
+			font.toolbar.Name = L"Segoe MDL2 Assets";
+			font.toolbar.Size = dpi(18);
+			font.toolbar.create();
+			if(!font.toolbar)
+			{
+				_log.warning(L"Cannot create context-menu toolbar font.");
+				return;
+			}
+
+			MENUITEMINFOW item = {sizeof(item)};
+			item.fMask = MIIM_FTYPE | MIIM_ID | MIIM_STRING;
+			item.fType = MFT_OWNERDRAW;
+			item.wID = ident.get_sys();
+			item.dwTypeData = const_cast<wchar_t *>(L"File actions");
+			_toolbar.id = item.wID;
+			if(!::InsertMenuItemW(menu, 0, TRUE, &item))
+			{
+				_log.warning(L"Cannot insert context-menu toolbar (error %lu).", ::GetLastError());
+				_toolbar.id = 0;
+				return;
+			}
+			_toolbar.selected = _toolbar.move(-1, 1);
+			_menus[menu].popup_height += dpi(44);
+		}
+
+		int ContextMenu::ToolbarHitTest(HWND window) const
+		{
+			RECT row{};
+			POINT point{};
+			if(!_toolbar.id || !::GetCursorPos(&point) ||
+				!::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
+				return -1;
+			if(GET_HMENU(window) != _hMenu)
+				return -1;
+			return MenuToolbar::hit_test(row, point, dpi(4), is_layoutRTL != 0);
+		}
+
+		void ContextMenu::UpdateToolbarHover(HWND window)
+		{
+			int hot = ToolbarHitTest(window);
+			if(hot == _toolbar.hot)
+				return;
+			_toolbar.hot = hot;
+			if(_toolbar.command(hot))
+				_toolbar.selected = hot;
+			::InvalidateRect(window, nullptr, FALSE);
+			_tip.hide();
+			if(hot >= 0 && _toolbar_sources[hot])
+			{
+				RECT row{};
+				if(::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
+				{
+					Rect rect = MenuToolbar::button_rect(row, hot, dpi(4), is_layoutRTL != 0);
+					_tip.show(_toolbar_sources[hot]->title, 0, UINT16_MAX, rect);
+				}
+			}
+		}
+
+		LRESULT ContextMenu::DrawToolbar(DRAWITEMSTRUCT *di)
+		{
+			DC dc = di->hDC;
+			dc.fill_rect(di->rcItem, composition ? dc.stock_brush(BLACK_BRUSH) : _hbackground);
+			constexpr wchar_t glyphs[] = {L'\uE8C6', L'\uE8C8', L'\uE77F', L'\uE8AC', L'\uE74D'};
+			for(int i = 0; i < MenuToolbar::count; ++i)
+			{
+				Rect rect = MenuToolbar::button_rect(di->rcItem, i, dpi(4), is_layoutRTL != 0);
+				bool focused = (di->itemState & ODS_SELECTED) && _toolbar.hot < 0 &&
+					i == _toolbar.selected;
+				bool selected = _toolbar.buttons[i].enabled && (i == _toolbar.hot || focused);
+				if(selected)
+					draw_rect(&dc, rect.point(), rect.size(), _theme.back.color.sel,
+						_theme.back.border.sel, _theme.back.radius);
+				auto color = !_toolbar.buttons[i].enabled ? _theme.text.color.nor_dis :
+					selected ? _theme.text.color.sel : _theme.text.color.nor;
+				draw_string(di->hDC, font.toolbar, &rect, color, &glyphs[i], 1,
+					DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+				if(focused && !(di->itemState & ODS_NOFOCUSRECT))
+					::DrawFocusRect(di->hDC, &rect);
+			}
+			return TRUE;
+		}
+
 		LRESULT ContextMenu::OnDrawItem(DRAWITEMSTRUCT *di)
 		{
 			LRESULT lret = TRUE;
+			if(_toolbar.id && di->itemID == _toolbar.id)
+				return DrawToolbar(di);
 			//current.selectitem = nullptr;
 			if(di->itemID == 0x5ffffffe)
 				return lret;
@@ -2492,6 +2620,12 @@ namespace Nilesoft
 
 			mi->itemHeight = 0;
 			mi->itemWidth = 0;
+			if(_toolbar.id && mi->itemID == _toolbar.id)
+			{
+				mi->itemWidth = dpi(220);
+				mi->itemHeight = dpi(44);
+				return TRUE;
+			}
 			
 			if(mi->itemID == 0x5ffffffe)
 			{
@@ -3654,6 +3788,7 @@ namespace Nilesoft
 
 			//New feature "showdelay" to change the menu show delay time and it is applied immediately without saving the value in the registry.
 			//Gets or sets the time, in milliseconds, that the system waits before displaying a shortcut menu when the mouse cursor is over a submenu item.
+			_toolbar.enabled = sets->toolbar && _context.eval_bool(sets->toolbar);
 			//New-Item -Path "HKCU:\Software\Control Panel\Desktop" -Name MenuShowDelay -Force -Value 200
 			if(_context.eval_number(sets->showdelay, obj))
 			{
@@ -4465,10 +4600,19 @@ namespace Nilesoft
 					HookMap[_winEventHook.get()] = this;
 				}
 
-				if(_context.eval_bool(sets->screenshot.enabled))
+				bool screenshotEnabled = _context.eval_bool(sets->screenshot.enabled);
+				if(screenshotEnabled)
 				{
-					_keyboardHook.hook(WH_KEYBOARD, KeyboardProc, ThreadId);
 					_context.Eval(sets->screenshot.directory, _screenshot, true);
+				}
+				if(screenshotEnabled || _toolbar.enabled)
+				{
+					if(!_keyboardHook.hook(WH_KEYBOARD, KeyboardProc, ThreadId))
+					{
+						_log.warning(L"Cannot install context-menu toolbar keyboard hook (error %lu).",
+							::GetLastError());
+						_toolbar.enabled = false;
+					}
 				}
 
 				hCursor = ::LoadCursorW(nullptr, IDC_ARROW);
@@ -4580,6 +4724,8 @@ namespace Nilesoft
 
 		int ContextMenu::InvokeCommand(int id)
 		{
+			if(_toolbar.id && static_cast<UINT>(id) == _toolbar.id)
+				id = static_cast<int>(_toolbar.command(_toolbar.selected));
 			Uninitialize();
 
 			invoke_item = nullptr;
@@ -5642,6 +5788,14 @@ namespace Nilesoft
 				//case MN_GETPPOPUPMENU:
 				//case MN_SETHMENU:
 				//	break;
+				case WM_MOUSEMOVE:
+				case MN_MOUSEMOVE:
+				{
+					lret = defSubclassProc();
+					if(wnd->hMenu == ctx->_hMenu && ctx->_toolbar.id)
+						ctx->UpdateToolbarHover(hWnd);
+					return lret;
+				}
 				case WM_DESTROY:
 				{
 					//wnd->hidden();
@@ -6088,6 +6242,7 @@ namespace Nilesoft
 					*/
 				case MN_BUTTONDOWN:
 				{
+					ctx->_toolbar.keyboard = false;
 					if(lParam == 0 && ctx)
 					{
 						ctx->mouse_button = (::GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0x8000 ? VK_RBUTTON : VK_LBUTTON;
@@ -6096,6 +6251,13 @@ namespace Nilesoft
 				}
 				case MN_BUTTONUP:
 				{
+					if(ctx->_toolbar.id && wnd->hMenu == ctx->_hMenu && wParam == 0)
+					{
+						if(!ctx->_toolbar.keyboard)
+							ctx->_toolbar.selected = ctx->ToolbarHitTest(hWnd);
+						if(!ctx->_toolbar.command(ctx->_toolbar.selected))
+							return FALSE;
+					}
 					//auto hMenu = (HMENU)::SendMessageW(hWnd, MN_GETHMENU, 0, 0);
 					//wParam is position(index) of item the button was up clicked on.
 					MENUITEMINFOW mii = { sizeof(mii), MIIM_TYPE | MIIM_ID | MIIM_SUBMENU | MIIM_STATE };
@@ -6196,8 +6358,6 @@ namespace Nilesoft
 				case MN_SETHMENU:
 					break;
 					//mouse
-				case MN_MOUSEMOVE:
-					break;
 				case WM_MOUSEACTIVATE:
 				case WM_NCMOUSEMOVE:
 				case WM_MOUSELEAVE:
@@ -6248,6 +6408,34 @@ namespace Nilesoft
 			// Code < 0 is windows telling us 'don't process this message'.
 			if(nCode != 0)  // do not process message 
 				goto skip;
+
+			if(!key_up && (wParam == VK_LEFT || wParam == VK_RIGHT || wParam == VK_RETURN))
+			{
+				struct KeyEvent { WPARAM key; bool handled = false; } event{wParam};
+				::EnumThreadWindows(::GetCurrentThreadId(), [](HWND window, LPARAM data) -> BOOL
+				{
+					auto &event = *reinterpret_cast<KeyEvent *>(data);
+					auto ctx = ContextMenu::Prop::Get(window);
+					if(!ctx || !Window::IsPopupMenu(window) || !ctx->_toolbar.id ||
+						ctx->current.hWnd != window || ctx->current.selectitem_pos != 0 ||
+						GET_HMENU(window) != ctx->_hMenu)
+						return TRUE;
+					ctx->_toolbar.keyboard = true;
+					ctx->_toolbar.hot = -1;
+					if(event.key == VK_RETURN)
+						return FALSE;
+					int direction = event.key == VK_RIGHT ? 1 : -1;
+					if(ctx->is_layoutRTL)
+						direction = -direction;
+					ctx->_toolbar.selected = ctx->_toolbar.move(ctx->_toolbar.selected, direction);
+					ctx->_tip.hide();
+					::InvalidateRect(window, nullptr, FALSE);
+					event.handled = true;
+					return FALSE;
+				}, reinterpret_cast<LPARAM>(&event));
+				if(event.handled)
+					return 1;
+			}
 
 			//::GetWindow(GetActiveWindow(), GW_ENABLEDPOPUP))
 

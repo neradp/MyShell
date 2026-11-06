@@ -36,7 +36,7 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m '/t:dll;exe' /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
 
-    - name: Build and run selection tests
+    - name: Build and run selection and toolbar tests
       shell: pwsh
       run: |
         msbuild .\src\tests\SelectionTests.vcxproj /p:Configuration=release /p:Platform=x64

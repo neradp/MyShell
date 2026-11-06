@@ -4,14 +4,46 @@ An analysis-led continuation of [Nilesoft Shell](https://github.com/moudey/Shell
 for Windows 11 context menus, preserving existing NSS configurations and
 compatibility with StartAllBack.
 
-**Status: implementation awaiting passing tests, November 5, 2026.** An adapted
-implementation of PR #797, native selection tests, and a GitHub Actions workflow
-are present. The x64 DLL and manager compiled successfully on GitHub; the
-selection test failed at runtime. No DLL registration or Explorer restart has
-been performed. The icon toolbar is deferred until the selection changes pass validation.
+**Status: third-party selection working in user testing, November 6, 2026.**
+An adapted implementation of PR #797, native selection tests, and an x64
+GitHub Actions workflow are present. The DLL, manager, and selection tests have
+built successfully. The user reports working third-party menus after the
+handler-lifetime correction. The optional icon toolbar described below is new
+and still requires a GitHub build and interactive validation.
 ReShell has been inspected statically. A Ghidra decompilation attempt was stopped
 at the user's request; no completed pseudocode comparison is available.
 Static findings must not be confused with runtime compatibility tests.
+
+## Optional file-action toolbar
+
+Add this inside the `settings` block of your active NSS configuration:
+
+```nss
+toolbar.enabled = true
+```
+
+The default is disabled, preserving existing menus. The toolbar appears at the
+top of file/folder/drive selection menus and background menus when the host
+provides at least one recognized file action. It is never added to taskbar,
+Start, or edit-control menus.
+
+Buttons, in order: **Cut, Copy, Paste, Rename, Delete**. Missing or disabled
+native actions are greyed out. Recognition uses Shell's existing localized
+command identifiers, not fixed numeric command IDs or English title matching.
+Buttons dispatch the original host command, retaining its clipboard behavior,
+confirmation dialogs, and selection semantics. The toolbar takes its actions
+from the original host menu independently of NSS rules that move or remove
+text entries. Original text entries are not removed by the toolbar itself.
+
+Hover over an available host action for its localized title. Use Up/Down to
+select the toolbar row, Left/Right to choose an enabled button, and Enter to
+invoke it. Existing text commands remain the accessible alternative for
+screen readers and normal menu shortcuts. Button geometry scales with DPI
+and reverses in right-to-left menus.
+
+GitHub runs toolbar geometry, disabled-command, native-ID, and keyboard
+navigation tests alongside selection tests. Interactive rendering, mouse
+dispatch, and host behavior still require testing with the resulting DLL.
 
 ## Recommendation
 
@@ -54,7 +86,7 @@ Git repository. Upload or commit this root, not the remaining reference folder.
 
 - [src/Shell.sln](src/Shell.sln): product solution.
 - [.github/workflows/build.yml](.github/workflows/build.yml): portable builds and x64 selection tests.
-- [src/tests](src/tests/): native tests, not yet compiled or executed.
+- [src/tests](src/tests/): native selection and toolbar tests.
 - [LICENSE](LICENSE): original license.
 - [.gitignore](.gitignore): excludes the remaining `Shell-main` folder,
   `ReShell-Releases-main`, local `analysis`, build outputs, and IDE files.
@@ -206,11 +238,11 @@ behavior. Validate the chosen implementation in the actual target applications.
 ReShell can optionally serve as a behavioral reference in an agreed test
 environment; it is not a source dependency or a prerequisite for MyShell.
 
-### Current third-party runtime blocker
+### Third-party runtime correction
 
 The x64 build and selection tests passed in GitHub run
 [42124363857](https://github.com/neradp/MyShell/actions/runs/42124363857).
-However, the user reports native, unmodified menus in Everything and Total
+The user initially reported native, unmodified menus in Everything and Total
 Commander after a full PC restart. The installed DLL matches the artifact hash.
 Read-only inspection of both host processes confirms that the
 `NtUserTrackPopupMenuEx` import points into MyShell.
@@ -219,8 +251,9 @@ Runtime diagnostics now establish that Total Commander releases the zero-ID
 helper immediately after `QueryContextMenu`, before the popup consumes its
 selection. The handler now reserves one internal command ID without adding a
 visible item, so the Shell aggregator can retain its command mapping. This
-retention change requires verification in the actual hosts; compilation alone
-does not prove that their lifetime behavior is fixed. Diagnostics
+user reports working third-party menus after deploying this retention change.
+This is user-reported runtime validation, not an automated host compatibility
+suite. Diagnostics
 now log helper queries, premature helper destruction, selection consumption,
 window-classification rejection, and configuration exclusion. No file names or
 selected paths are included. After rebuilding, reproduce one file-result menu
@@ -236,19 +269,20 @@ been verified. Do not treat passing unit tests as proof of host integration.
 
 ## 4. Windows 11-style toolbar in the classic menu
 
-The requested feature is a custom icon toolbar, not the native modern menu.
-Candidate commands: Cut, Copy, Rename, Delete, and Paste, with context-sensitive
-visibility and enabled state.
+The implemented feature is a custom icon toolbar, not the native modern menu.
+Commands: Cut, Copy, Paste, Rename, and Delete, with context-sensitive enabled
+state. See [Optional file-action toolbar](#optional-file-action-toolbar) for
+activation and limitations.
 
 The existing `OnMeasureItem` / `OnDrawItem` implementation in
 [ContextMenu.cpp](src/dll/src/ContextMenu.cpp) provides a rendering
-starting point, but not independent horizontal buttons.
+starting point. A dedicated owner-drawn row now provides horizontal buttons.
 
 A normal `HMENU` row has one ID and selected state. Five buttons require custom
 hit-testing, focus, keyboard handling, tooltips, and accessibility. Drawing five
 icons or using NSS `col` does not implement a usable toolbar.
 
-Recommended prototype:
+Implementation constraints:
 
 1. Make the toolbar optional and initially limit it to suitable file/folder contexts,
    excluding the taskbar.
@@ -266,9 +300,9 @@ Bin and host confirmation behavior. Rename must preserve the correct editing
 context. Unsupported commands should be disabled or hidden, never silently replaced
 by a different operation.
 
-Test DPI scaling, light/dark themes, high contrast, localized labels, narrow menus,
+Validate DPI scaling, light/dark themes, high contrast, localized labels, narrow menus,
 keyboard navigation, screen readers, and multiple monitors. A reliable effort
-estimate requires a prototype; this is substantial renderer/input work.
+implementation requires interactive host validation as well as unit tests.
 
 Microsoft documents modern menu extensions through `IExplorerCommand` and app
 identity, including sparse packages for unpackaged Win32 applications. This does

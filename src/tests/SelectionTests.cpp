@@ -8,6 +8,7 @@
 #include <thread>
 #include "Include/ClassFactory.h"
 #include "Include/ShellExtSelectionRetriever.h"
+#include "Include/MenuToolbar.h"
 
 using Microsoft::WRL::ComPtr;
 volatile long g_cDllRef = 0;
@@ -41,8 +42,57 @@ struct Pidl
 	~Pidl() { ::CoTaskMemFree(value); }
 };
 
+static void runToolbarTests()
+{
+	using Nilesoft::Shell::MenuToolbar;
+	MenuToolbar toolbar;
+	check(!toolbar.enabled && toolbar.id == 0, "Toolbar must be opt-in");
+	check(toolbar.move(-1, 1) == -1 && toolbar.command(0) == 0,
+		"Unavailable toolbar operations must not dispatch");
+	toolbar.buttons[0] = {101, true};
+	toolbar.buttons[1] = {102, true};
+	toolbar.buttons[2] = {103, false};
+	toolbar.buttons[4] = {105, true};
+	check(toolbar.command(0) == 101 && toolbar.command(4) == 105,
+		"Toolbar must preserve native command IDs");
+	check(toolbar.command(2) == 0 && toolbar.command(-1) == 0 &&
+		toolbar.command(MenuToolbar::count) == 0, "Disabled/outside buttons must not dispatch");
+	check(toolbar.move(-1, 1) == 0 && toolbar.move(-1, -1) == 4 &&
+		toolbar.move(1, 1) == 4 && toolbar.move(4, 1) == 0 &&
+		toolbar.move(0, -1) == 4, "Keyboard navigation must skip disabled buttons and wrap");
+
+	for(int dpi : {96, 144, 192, 288})
+	{
+		int padding = ::MulDiv(4, dpi, 96);
+		RECT row{-300, 70, -300 + ::MulDiv(223, dpi, 96), 70 + ::MulDiv(44, dpi, 96)};
+		for(bool rtl : {false, true})
+		{
+			for(int i = 0; i < MenuToolbar::count; ++i)
+			{
+				auto button = MenuToolbar::button_rect(row, i, padding, rtl);
+				POINT center{(button.left + button.right) / 2, (button.top + button.bottom) / 2};
+				check(MenuToolbar::hit_test(row, center, padding, rtl) == i,
+					"Drawn buttons and hit testing must agree at each DPI and in RTL");
+				check(button.left >= row.left + padding && button.right <= row.right - padding,
+					"Buttons must fit the menu row");
+			}
+			check(MenuToolbar::hit_test(row, {row.left, row.top}, padding, rtl) == -1 &&
+				MenuToolbar::hit_test(row, {row.right, row.bottom}, padding, rtl) == -1,
+				"Toolbar padding and outside clicks must not select a command");
+			auto first = MenuToolbar::button_rect(row, rtl ? 4 : 0, padding, rtl);
+			auto second = MenuToolbar::button_rect(row, rtl ? 3 : 1, padding, rtl);
+			check(first.right == second.left &&
+				MenuToolbar::hit_test(row, {first.right, first.top}, padding, rtl) ==
+					(rtl ? 3 : 1), "Shared edges must belong to exactly one button");
+		}
+	}
+	check(MenuToolbar::hit_test({0, 0, 8, 8}, {4, 4}, 4, false) == -1,
+		"Collapsed toolbar must not select a command");
+}
+
 static void runTests()
 {
+	runToolbarTests();
 	ComPtr<IClassFactory> factory;
 	check(ClassFactory::CreateClassObject(IID_IClassFactory, nullptr) == E_POINTER,
 		"Null exported factory output");

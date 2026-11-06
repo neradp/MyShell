@@ -14,6 +14,7 @@ constexpr auto Windows_UI_FileExplorer = L"Windows.UI.FileExplorer.dll";
 #include "Include/Theme.h"
 #include <Library/PlutoVGWrap.h>
 #include "Include/Tip.h"
+#include "Include/MenuToolbar.h"
 #include <stack>
 
 #define MF_ALLSTATE         0x00FF
@@ -548,6 +549,7 @@ plutovg_move_to(pluto, start.x, start.y);
 				LOGFONTW menu{};
 				Font icon;
 				Font icon10;
+				Font toolbar;
 			}font;
 
 			struct symbole_tag 
@@ -684,6 +686,8 @@ plutovg_move_to(pluto, start.x, start.y);
 			LANGID languageId = 0;
 			int is_layoutRTL = 0;
 			Tip _tip;
+			MenuToolbar _toolbar;
+			std::array<menuitem_t *, MenuToolbar::count> _toolbar_sources{};
 			string _screenshot;
 
 			HINSTANCE hInstance{};
@@ -725,6 +729,10 @@ plutovg_move_to(pluto, start.x, start.y);
 			LRESULT OnMenuSelect(HMENU hMenu, uint32_t id, uint32_t flags);
 			LRESULT OnDrawItem(DRAWITEMSTRUCT *di);
 			LRESULT OnMeasureItem(MEASUREITEMSTRUCT *mi);
+			void BuildToolbar(HMENU menu);
+			LRESULT DrawToolbar(DRAWITEMSTRUCT *di);
+			int ToolbarHitTest(HWND window) const;
+			void UpdateToolbarHover(HWND window);
 
 			LRESULT OnDrawItem_D2D(DRAWITEMSTRUCT *di);
 
