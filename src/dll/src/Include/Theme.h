@@ -645,26 +645,6 @@ namespace Nilesoft
 						th.separator.color = 0x15FFFFFF;
 					}
 				}
-				else
-				{
-					th.separator.color = 0xFF808080;
-					th.border.color = 0xFFA0A0A0;
-					th.background.color = 0xFF2B2B2B;
-					th.text.color = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFF6D6D6D, 0xFF6D6D6D };
-					th.back.color = { 0xFF2B2B2B, 0xFF414141, 0xFF2B2B2B, 0xFF2B2B2B };
-
-					if(enableTransparency)
-					{
-						th.border.size = 1;
-						th.border.color = th.background.color;
-						th.border.color.a = 0x40;
-						th.background.color.a = 0x00;
-						th.background.tintcolor = th.background.color;
-						th.background.tintcolor.a = 0x40;
-						th.back.color = { 0x00000000, 0x10FFFFFF, 0x00000000, 0x05FFFFFF };
-						th.separator.color = 0x15FFFFFF;
-					}
-				}
 
 				th.shadow.color.opacity(25);
 				//th.back.border = th.back.color.nor;
