@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
 
@@ -77,3 +78,46 @@ jobs:
         compression-level: 6
         overwrite: false
         include-hidden-files: false
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+    - name: Download tested portable package
+      uses: actions/download-artifact@v4
+      with:
+        name: MyShell-x64
+        path: package
+
+    - name: Create release ZIP
+      shell: pwsh
+      env:
+        RELEASE_TAG: ${{ github.ref_name }}
+      run: |
+        $archive = "MyShell-$env:RELEASE_TAG-x64.zip"
+        Compress-Archive -Path .\package\* -DestinationPath $archive
+        $entries = [System.IO.Compression.ZipFile]::OpenRead((Join-Path $PWD $archive))
+        try {
+          foreach ($required in @('shell.dll', 'shell.exe', 'shell.nss', 'LICENSE')) {
+            if (!$entries.GetEntry($required)) {
+              throw "Missing release ZIP entry: $required"
+            }
+          }
+        } finally {
+          $entries.Dispose()
+        }
+
+    - name: Publish pre-release
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        RELEASE_TAG: ${{ github.ref_name }}
+      run: |
+        gh release create "$env:RELEASE_TAG" "MyShell-$env:RELEASE_TAG-x64.zip" `
+          --verify-tag --title "MyShell $env:RELEASE_TAG" --prerelease `
+          --notes "Windows x64 portable build. Includes shell.dll, shell.exe, starter NSS configuration, and license. Built and tested by GitHub Actions. Back up your active configuration before updating; see the README for installation and toolbar settings."
+        if ($LASTEXITCODE -ne 0) { throw "Release publication failed" }
