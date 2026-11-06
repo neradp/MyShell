@@ -2157,10 +2157,10 @@ namespace Nilesoft
 				SIZE size = image.size;
 				if(size.cx <= 0 || size.cy <= 0)
 					return;
-				long limit = std::min(rect.width(), rect.height());
+				long limit = std::min<long>(rect.width(), rect.height());
 				if(size.cx > limit || size.cy > limit)
 				{
-					long largest = std::max(size.cx, size.cy);
+					long largest = std::max<long>(size.cx, size.cy);
 					size = {::MulDiv(size.cx, limit, largest), ::MulDiv(size.cy, limit, largest)};
 				}
 				POINT point{rect.left + (rect.width() - size.cx) / 2,
