@@ -82,6 +82,41 @@ static void runToolbarTests()
 	check(toolbar.hover(-1) && toolbar.hot == -1 && !toolbar.keyboard,
 		"Leaving the toolbar must clear hover without showing a keyboard focus frame");
 
+	HDC textDC = ::CreateCompatibleDC(nullptr);
+	check(textDC != nullptr, "Create toolbar label measurement DC");
+	for(int dpi : {96, 144, 192, 288})
+	{
+		HFONT textFont = ::CreateFontW(-::MulDiv(14, dpi, 96), 0, 0, 0, FW_NORMAL,
+			FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+			DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+		check(textFont != nullptr, "Create toolbar label test font");
+		HGDIOBJ oldFont = ::SelectObject(textDC, textFont);
+		check(oldFont && oldFont != HGDI_ERROR, "Select toolbar label test font");
+		auto scale = [dpi](int value) { return ::MulDiv(value, dpi, 96); };
+		int width = scale(MenuToolbar::button_width) - 2 * scale(MenuToolbar::label_inset);
+		int lineHeight = MenuToolbar::label_height(textDC, L"M", 1, width);
+		const wchar_t *labels[] = {L"Premenova\u0165", L"VeryLongUnbrokenToolbarLabel"};
+		for(auto label : labels)
+		{
+			int textHeight = MenuToolbar::label_height(textDC, label, -1, width);
+			check(lineHeight > 0 && textHeight >= 2 * lineHeight,
+				"Long toolbar labels must wrap even without spaces");
+			int rowHeight = MenuToolbar::required_row_height(scale(MenuToolbar::height),
+				scale(MenuToolbar::padding), scale(MenuToolbar::icon_top), scale(20),
+				scale(MenuToolbar::label_gap), textHeight, scale(MenuToolbar::label_bottom));
+			int labelTop = scale(MenuToolbar::padding) + scale(MenuToolbar::icon_top) +
+				scale(20) + scale(MenuToolbar::label_gap);
+			RECT bounds{0, labelTop, width,
+				rowHeight - scale(MenuToolbar::padding) - scale(MenuToolbar::label_bottom)};
+			int renderedHeight = ::DrawTextW(textDC, label, -1, &bounds, MenuToolbar::label_format);
+			check(bounds.bottom - bounds.top >= textHeight && renderedHeight == textHeight,
+				"Toolbar row must fit every wrapped label line at each DPI");
+		}
+		::SelectObject(textDC, oldFont);
+		::DeleteObject(textFont);
+	}
+	::DeleteDC(textDC);
+
 	for(int dpi : {96, 144, 192, 288})
 	{
 		int padding = ::MulDiv(MenuToolbar::padding, dpi, 96);

@@ -2015,6 +2015,7 @@ namespace Nilesoft
 		void ContextMenu::BuildToolbar(HMENU menu)
 		{
 			_toolbar.id = 0;
+			_toolbar.row_height = dpi(MenuToolbar::height);
 			_toolbar.buttons = {};
 			_toolbar_sources = {};
 			_toolbar.hot = _toolbar.selected = -1;
@@ -2074,6 +2075,40 @@ namespace Nilesoft
 						operations[i]);
 			}
 
+			HDC textDC = ::GetDC(hwnd.owner);
+			if(textDC)
+			{
+				HGDIOBJ oldFont = ::SelectObject(textDC, font.handle);
+				if(oldFont && oldFont != HGDI_ERROR)
+				{
+					int maxLabelHeight = 0;
+					const int labelWidth = dpi(MenuToolbar::button_width) -
+						2 * dpi(MenuToolbar::label_inset);
+					for(int i = 0; i < MenuToolbar::count; ++i)
+					{
+						auto label = ToolbarLabel(i);
+						if(!label.empty())
+						{
+							int textHeight = MenuToolbar::label_height(textDC, label,
+								label.length<int>(), labelWidth);
+							if(!textHeight)
+								_log.warning(L"Cannot measure context-menu toolbar label %d.", i);
+							maxLabelHeight = std::max(maxLabelHeight, textHeight);
+						}
+					}
+					_toolbar.row_height = MenuToolbar::required_row_height(
+						_toolbar.row_height, dpi(MenuToolbar::padding), dpi(MenuToolbar::icon_top),
+						std::min<int>(_theme.image.size, dpi(20)), dpi(MenuToolbar::label_gap),
+						maxLabelHeight, dpi(MenuToolbar::label_bottom));
+					::SelectObject(textDC, oldFont);
+				}
+				else
+					_log.warning(L"Cannot select font for context-menu toolbar measurement.");
+				::ReleaseDC(hwnd.owner, textDC);
+			}
+			else
+				_log.warning(L"Cannot obtain device context for toolbar measurement.");
+
 			MENUITEMINFOW item = {sizeof(item)};
 			item.fMask = MIIM_FTYPE | MIIM_ID | MIIM_STRING;
 			item.fType = MFT_OWNERDRAW;
@@ -2087,7 +2122,14 @@ namespace Nilesoft
 				return;
 			}
 			_toolbar.selected = _toolbar.move(-1, 1);
-			_menus[menu].popup_height += dpi(44);
+			_menus[menu].popup_height += _toolbar.row_height;
+		}
+
+		string ContextMenu::ToolbarLabel(int index) const
+		{
+			auto action = _toolbar_sources[index];
+			return action ? action->title : _toolbar_icons[index].ui ?
+				_toolbar_icons[index].ui->get_title() : string{};
 		}
 
 		void ContextMenu::HideToolbarDuplicates(HMENU menu)
@@ -2191,23 +2233,20 @@ namespace Nilesoft
 						_theme.back.border.sel, _theme.back.radius);
 				auto color = !_toolbar.buttons[i].enabled ? _theme.text.color.nor_dis :
 					selected ? _theme.text.color.sel : _theme.text.color.nor;
-				long iconTop = rect.top + dpi(8);
+				long iconTop = rect.top + dpi(MenuToolbar::icon_top);
 				Rect imageRect{rect.left + (rect.width() - iconSize) / 2, iconTop,
 					rect.left + (rect.width() + iconSize) / 2, iconTop + iconSize};
 				DrawMenuImage(dc, _toolbar_icons[i].image, imageRect, color,
 					!_toolbar.buttons[i].enabled);
 
-				auto action = _toolbar_sources[i];
-				auto label = action ? action->title : _toolbar_icons[i].ui ?
-					_toolbar_icons[i].ui->get_title() : string{};
+				auto label = ToolbarLabel(i);
 				if(!label.empty())
 				{
-					const int labelInset = dpi(8);
-					Rect labelRect{rect.left + labelInset, imageRect.bottom + dpi(3),
-						rect.right - labelInset, rect.bottom - dpi(10)};
+					const int labelInset = dpi(MenuToolbar::label_inset);
+					Rect labelRect{rect.left + labelInset, imageRect.bottom + dpi(MenuToolbar::label_gap),
+						rect.right - labelInset, rect.bottom - dpi(MenuToolbar::label_bottom)};
 					draw_string(di->hDC, font.handle, &labelRect, color, label,
-						label.length<int>(), DT_CENTER | DT_VCENTER | DT_WORDBREAK |
-						DT_EDITCONTROL);
+						label.length<int>(), MenuToolbar::label_format);
 				}
 
 				if(focused && !(di->itemState & ODS_NOFOCUSRECT))
@@ -2747,7 +2786,7 @@ namespace Nilesoft
 			{
 				mi->itemWidth = dpi(MenuToolbar::padding * 2 +
 					MenuToolbar::button_width * MenuToolbar::count);
-				mi->itemHeight = dpi(MenuToolbar::height);
+				mi->itemHeight = _toolbar.row_height;
 				return TRUE;
 			}
 			

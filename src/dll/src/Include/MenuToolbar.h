@@ -11,6 +11,11 @@ namespace Nilesoft::Shell
 		static constexpr int button_width = 80;
 		static constexpr int padding = 8;
 		static constexpr int height = 80;
+		static constexpr int label_inset = 8;
+		static constexpr int icon_top = 8;
+		static constexpr int label_gap = 3;
+		static constexpr int label_bottom = 4;
+		static constexpr UINT label_format = DT_CENTER | DT_WORDBREAK | DT_EDITCONTROL | DT_HIDEPREFIX;
 		struct Button
 		{
 			UINT command = 0;
@@ -19,10 +24,24 @@ namespace Nilesoft::Shell
 
 		std::array<Button, count> buttons{};
 		UINT id = 0;
+		int row_height = 0;
 		int hot = -1;
 		int selected = -1;
 		bool enabled = false;
 		bool keyboard = false;
+
+		static int label_height(HDC dc, const wchar_t *label, int length, int width)
+		{
+			RECT bounds{0, 0, width, 0};
+			return ::DrawTextW(dc, label, length, &bounds, label_format | DT_CALCRECT);
+		}
+
+		static int required_row_height(int minimum, int inset, int top, int iconSize,
+			int gap, int textHeight, int bottom)
+		{
+			const int required = 2 * inset + top + iconSize + gap + textHeight + bottom;
+			return required > minimum ? required : minimum;
+		}
 
 		bool hover(int index)
 		{
