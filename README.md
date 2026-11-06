@@ -8,8 +8,9 @@ compatibility with StartAllBack.
 An adapted implementation of PR #797, native selection tests, and an x64
 GitHub Actions workflow are present. The DLL, manager, and selection tests have
 built successfully. The user reports working third-party menus after the
-handler-lifetime correction. The optional icon toolbar described below is new
-and still requires a GitHub build and interactive validation.
+handler-lifetime correction. The optional icon toolbar and its tests passed
+the x64 [GitHub build](https://github.com/neradp/MyShell/actions/runs/42135111673).
+Interactive toolbar rendering and host dispatch still require validation.
 ReShell has been inspected statically. A Ghidra decompilation attempt was stopped
 at the user's request; no completed pseudocode comparison is available.
 Static findings must not be confused with runtime compatibility tests.
@@ -250,7 +251,7 @@ Read-only inspection of both host processes confirms that the
 Runtime diagnostics now establish that Total Commander releases the zero-ID
 helper immediately after `QueryContextMenu`, before the popup consumes its
 selection. The handler now reserves one internal command ID without adding a
-visible item, so the Shell aggregator can retain its command mapping. This
+visible item, so the Shell aggregator can retain its command mapping. The
 user reports working third-party menus after deploying this retention change.
 This is user-reported runtime validation, not an automated host compatibility
 suite. Diagnostics
