@@ -9,7 +9,7 @@ namespace Nilesoft::Shell
 	{
 		static constexpr int count = 5;
 		static constexpr int button_width = 80;
-		static constexpr int padding = 8;
+		static constexpr int padding = 4;
 		static constexpr int height = 80;
 		static constexpr int label_inset = 8;
 		static constexpr int button_gap = 4;
