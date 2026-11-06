@@ -59,6 +59,16 @@ namespace Nilesoft::Shell
 				buttons[index].command : 0;
 		}
 
+		bool replaces(UINT commandId, bool native, bool popup) const
+		{
+			if(!id || !native || popup || !commandId)
+				return false;
+			for(const auto &button : buttons)
+				if(button.command == commandId)
+					return true;
+			return false;
+		}
+
 		int move(int from, int direction) const
 		{
 			if(from < 0)

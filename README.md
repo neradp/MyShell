@@ -34,15 +34,19 @@ command identifiers, not fixed numeric command IDs or English title matching.
 Buttons dispatch the original host command, retaining its clipboard behavior,
 confirmation dialogs, and selection semantics. The toolbar takes its actions
 from the original host menu independently of NSS rules that move or remove
-text entries. Original text entries are not removed by the toolbar itself.
+text entries. When the toolbar is present, matching native text commands are
+hidden, including commands moved into submenus by NSS. Custom commands and
+submenus (such as a custom Rename submenu) are preserved. If the toolbar is
+disabled or cannot be inserted, text commands remain unchanged.
 Icons use the same NSS image definitions, two-color glyph palette, and
 `theme.image.size` as normal menu entries rather than a separate white icon font.
 
 Moving the mouse highlights the enabled button under the pointer and clears
 the keyboard focus frame. Hover over an available host action for its localized title. Use Up/Down to
 select the toolbar row, Left/Right to choose an enabled button, and Enter to
-invoke it. Existing text commands remain the accessible alternative for
-screen readers and normal menu shortcuts. Button geometry scales with DPI
+invoke it. Disable the toolbar to restore the original text commands for
+screen-reader workflows; the icon row does not expose separate accessible
+button objects. Button geometry scales with DPI
 and reverses in right-to-left menus.
 
 GitHub runs toolbar geometry, hover/focus transitions, disabled-command, native-ID, and keyboard

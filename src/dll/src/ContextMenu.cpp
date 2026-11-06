@@ -1491,6 +1491,7 @@ namespace Nilesoft
 
 			if(menu->is_main)
 				BuildToolbar(hMenu);
+			HideToolbarDuplicates(hMenu);
 
 			long image__size = _theme.image.size;
 			if(menu->draw.height < image__size)
@@ -2087,6 +2088,53 @@ namespace Nilesoft
 			}
 			_toolbar.selected = _toolbar.move(-1, 1);
 			_menus[menu].popup_height += dpi(44);
+		}
+
+		void ContextMenu::HideToolbarDuplicates(HMENU menu)
+		{
+			if(!_toolbar.id)
+				return;
+			bool removed = false;
+			for(int position = ::GetMenuItemCount(menu) - 1; position >= 0; --position)
+			{
+				MENUITEMINFOW info{sizeof(info)};
+				info.fMask = MIIM_ID | MIIM_SUBMENU | MIIM_FTYPE;
+				if(!::GetMenuItemInfoW(menu, position, TRUE, &info))
+				{
+					_log.warning(L"Cannot inspect toolbar duplicate (error %lu).", ::GetLastError());
+					continue;
+				}
+				auto item = get_item(info.wID, menu, _items);
+				if(!_toolbar.replaces(info.wID, item && !item->dynamic,
+					info.hSubMenu != nullptr || (info.fType & MFT_SEPARATOR)))
+					continue;
+				if(::RemoveMenu(menu, position, MF_BYPOSITION))
+					removed = true;
+				else
+					_log.warning(L"Cannot hide toolbar duplicate (error %lu).", ::GetLastError());
+			}
+			if(!removed)
+				return;
+			bool previousSeparator = true;
+			for(int position = 0; position < ::GetMenuItemCount(menu); ++position)
+			{
+				MENUITEMINFOW info{sizeof(info)};
+				info.fMask = MIIM_FTYPE;
+				if(!::GetMenuItemInfoW(menu, position, TRUE, &info))
+				{
+					_log.warning(L"Cannot inspect toolbar separator (error %lu).", ::GetLastError());
+					break;
+				}
+				bool separator = (info.fType & MFT_SEPARATOR) != 0;
+				if(separator && (previousSeparator || position == ::GetMenuItemCount(menu) - 1))
+				{
+					if(::RemoveMenu(menu, position, MF_BYPOSITION))
+						--position;
+					else
+						_log.warning(L"Cannot remove toolbar separator (error %lu).", ::GetLastError());
+				}
+				previousSeparator = separator;
+			}
 		}
 
 		int ContextMenu::ToolbarHitTest(HWND window) const

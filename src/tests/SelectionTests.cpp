@@ -53,6 +53,13 @@ static void runToolbarTests()
 	toolbar.buttons[1] = {102, true};
 	toolbar.buttons[2] = {103, false};
 	toolbar.buttons[4] = {105, true};
+	check(!toolbar.replaces(101, true, false), "Absent toolbar must preserve text commands");
+	toolbar.id = 500;
+	check(toolbar.replaces(101, true, false) && toolbar.replaces(103, true, false),
+		"Active toolbar must replace native text commands including disabled actions");
+	check(!toolbar.replaces(101, true, true) && !toolbar.replaces(101, false, false) &&
+		!toolbar.replaces(999, true, false) && !toolbar.replaces(0, true, false),
+		"Toolbar must preserve submenus, custom commands, unrelated actions and invalid IDs");
 	check(toolbar.command(0) == 101 && toolbar.command(4) == 105,
 		"Toolbar must preserve native command IDs");
 	check(toolbar.command(2) == 0 && toolbar.command(-1) == 0 &&

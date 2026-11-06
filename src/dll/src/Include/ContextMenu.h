@@ -731,6 +731,7 @@ plutovg_move_to(pluto, start.x, start.y);
 			LRESULT OnDrawItem(DRAWITEMSTRUCT *di);
 			LRESULT OnMeasureItem(MEASUREITEMSTRUCT *mi);
 			void BuildToolbar(HMENU menu);
+			void HideToolbarDuplicates(HMENU menu);
 			LRESULT DrawToolbar(DRAWITEMSTRUCT *di);
 			int ToolbarHitTest(HWND window) const;
 			void UpdateToolbarHover(HWND window);
