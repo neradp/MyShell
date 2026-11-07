@@ -3,6 +3,8 @@
 A customizable Windows context menu based on
 [Nilesoft Shell](https://github.com/moudey/Shell), with third-party file-manager
 integration and an optional Windows 11-style file-action toolbar.
+<img width="1260" height="1519" alt="obrázok" src="https://github.com/user-attachments/assets/845ca82f-9f10-4085-865e-9bdab8c6b5f8" />
+
 
 ## Features
 
