@@ -260,7 +260,7 @@ static void runToolbarTests()
 		check(button.right - button.left == button.bottom - button.top,
 			"Icon-only button slots must be square");
 		toolbar.width = square;
-		check(toolbar.total_width(inset) == 2 * inset + MenuToolbar::count * square,
+		check(toolbar.total_width(inset) == 2 * inset + toolbar.visible() * square,
 			"Toolbar width must follow the button width");
 		int labeled = MenuToolbar::icon_top_offset(button, top, icon, true);
 		int centered = MenuToolbar::icon_top_offset(button, top, icon, false);

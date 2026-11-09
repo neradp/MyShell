@@ -105,8 +105,8 @@ namespace Nilesoft::Shell
 		{
 			if(showLabels)
 				return button.top + top;
-			const int height = button.bottom - button.top;
-			return button.top + (height > iconSize ? (height - iconSize) / 2 : 0);
+			const int buttonHeight = button.bottom - button.top;
+			return button.top + (buttonHeight > iconSize ? (buttonHeight - iconSize) / 2 : 0);
 		}
 
 		// Button area of the menu row; the divider line and its bottom margin sit below it.
