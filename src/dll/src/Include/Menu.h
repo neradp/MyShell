@@ -16,7 +16,11 @@ namespace Nilesoft
 		{
 			auto_expr showdelay;
 			auto_expr priority;
-			auto_expr toolbar;
+			struct
+			{
+				auto_expr enabled;
+				auto_expr labels;
+			} toolbar;
 			struct
 			{
 				auto_expr enabled;

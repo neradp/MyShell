@@ -30,6 +30,7 @@ namespace Nilesoft::Shell
 		int hot = -1;
 		int selected = -1;
 		bool enabled = false;
+		bool labels = true;
 		bool keyboard = false;
 
 		static int label_height(HDC dc, const wchar_t *label, int length, int width)
@@ -43,6 +44,21 @@ namespace Nilesoft::Shell
 		{
 			const int required = 2 * inset + top + iconSize + gap + textHeight + bottom;
 			return required > minimum ? required : minimum;
+		}
+
+		// Row height when labels are hidden: the icon keeps its top margin on both sides.
+		static int icon_only_row_height(int inset, int top, int iconSize)
+		{
+			return 2 * inset + 2 * top + iconSize;
+		}
+
+		// Top of the icon inside a button; centered vertically when no label is drawn below it.
+		static int icon_top_offset(const RECT &button, int top, int iconSize, bool showLabels)
+		{
+			if(showLabels)
+				return button.top + top;
+			const int height = button.bottom - button.top;
+			return button.top + (height > iconSize ? (height - iconSize) / 2 : 0);
 		}
 
 		// Button area of the menu row; the divider line and its bottom margin sit below it.

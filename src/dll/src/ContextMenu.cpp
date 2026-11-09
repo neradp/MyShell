@@ -2083,8 +2083,10 @@ namespace Nilesoft
 						operations[i]);
 			}
 
-			HDC textDC = ::GetDC(hwnd.owner);
-			if(textDC)
+			if(!_toolbar.labels)
+				_toolbar.row_height = MenuToolbar::icon_only_row_height(dpi(MenuToolbar::padding),
+					dpi(MenuToolbar::icon_top), std::min<int>(_theme.image.size, dpi(20)));
+			else if(HDC textDC = ::GetDC(hwnd.owner); textDC)
 			{
 				HGDIOBJ oldFont = ::SelectObject(textDC, font.handle);
 				if(oldFont && oldFont != HGDI_ERROR)
@@ -2210,17 +2212,26 @@ namespace Nilesoft
 				::SendMessageW(window, MN_SELECTITEM, 0, 0);
 			PaintToolbar(window);
 			_tip.hide();
-			if(hot >= 0 && _toolbar_sources[hot] && !_toolbar_sources[hot]->tip.text.empty())
+			if(hot < 0 || !_toolbar_sources[hot])
+				return;
+			const auto &tip = _toolbar_sources[hot]->tip;
+			// Without labels the action title doubles as the tooltip unless a tip is configured.
+			const bool fallback = tip.text.empty() && !_toolbar.labels;
+			if(tip.text.empty() && !fallback)
+				return;
+			auto label = ToolbarLabel(hot);
+			if(fallback && label.empty())
+				return;
+			RECT row{};
+			if(::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
 			{
-				RECT row{};
-				if(::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
-				{
-					Rect rect = MenuToolbar::button_rect(
-						MenuToolbar::content_rect(row, _toolbar.divider_height), hot,
-						dpi(MenuToolbar::padding), dpi(MenuToolbar::button_width), is_layoutRTL != 0);
-					_tip.show(_toolbar_sources[hot]->tip.text, _toolbar_sources[hot]->tip.type,
-						_toolbar_sources[hot]->tip.time, rect);
-				}
+				Rect rect = MenuToolbar::button_rect(
+					MenuToolbar::content_rect(row, _toolbar.divider_height), hot,
+					dpi(MenuToolbar::padding), dpi(MenuToolbar::button_width), is_layoutRTL != 0);
+				if(fallback)
+					_tip.show(label, 0, UINT16_MAX, rect);
+				else
+					_tip.show(tip.text, tip.type, tip.time, rect);
 			}
 		}
 
@@ -2246,13 +2257,14 @@ namespace Nilesoft
 						_theme.back.border.sel, _theme.back.radius);
 				auto color = !_toolbar.buttons[i].enabled ? _theme.text.color.nor_dis :
 					selected ? _theme.text.color.sel : _theme.text.color.nor;
-				long iconTop = rect.top + dpi(MenuToolbar::icon_top);
+				long iconTop = MenuToolbar::icon_top_offset(rect, dpi(MenuToolbar::icon_top),
+					iconSize, _toolbar.labels);
 				Rect imageRect{rect.left + (rect.width() - iconSize) / 2, iconTop,
 					rect.left + (rect.width() + iconSize) / 2, iconTop + iconSize};
 				DrawMenuImage(dc, _toolbar_icons[i].image, imageRect, color,
 					!_toolbar.buttons[i].enabled);
 
-				auto label = ToolbarLabel(i);
+				auto label = _toolbar.labels ? ToolbarLabel(i) : string{};
 				if(!label.empty())
 				{
 					const int labelInset = dpi(MenuToolbar::label_inset);
@@ -3965,7 +3977,9 @@ namespace Nilesoft
 
 			//New feature "showdelay" to change the menu show delay time and it is applied immediately without saving the value in the registry.
 			//Gets or sets the time, in milliseconds, that the system waits before displaying a shortcut menu when the mouse cursor is over a submenu item.
-			_toolbar.enabled = sets->toolbar && _context.eval_bool(sets->toolbar);
+			_toolbar.enabled = sets->toolbar.enabled && _context.eval_bool(sets->toolbar.enabled);
+			// Labels are shown unless explicitly disabled; hidden labels fall back to tooltips.
+			_toolbar.labels = !sets->toolbar.labels || _context.eval_bool(sets->toolbar.labels);
 			//New-Item -Path "HKCU:\Software\Control Panel\Desktop" -Name MenuShowDelay -Force -Value 200
 			if(_context.eval_number(sets->showdelay, obj))
 			{

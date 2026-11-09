@@ -16,7 +16,8 @@ integration and an optional Windows 11-style file-action toolbar.
 - Retain the original Explorer and taskbar integration, including compatibility
   with StartAllBack.
 - Add an optional horizontal toolbar with **Cut, Copy, Paste, Rename, Delete**.
-- Keep toolbar buttons compact and edge-aligned, with labels and separators.
+- Keep toolbar buttons compact and edge-aligned, with optional labels and
+  separators; hidden labels become tooltips.
 - Use the host's original file commands, clipboard behavior, and confirmation
   dialogs.
 
@@ -87,6 +88,16 @@ The toolbar is disabled by default. It appears in suitable file, folder, drive,
 and background menus when the host provides a recognized file action. It is
 not added to taskbar, Start, or edit-control menus.
 
+To show icons only, hide the labels under them:
+
+```nss
+toolbar.labels = false
+```
+
+Labels are shown by default. When they are hidden, the toolbar row shrinks to
+fit the icons and hovering over a button shows its label as a tooltip instead.
+A `tip` configured for the underlying action via `modify` takes precedence.
+
 - Icons use NSS image definitions, theme colors, and `theme.image.size`.
 - Buttons have a fixed width and stay aligned to the menu's leading edge as
   other items make the menu wider. Labels appear under each icon, with vertical
@@ -95,7 +106,8 @@ not added to taskbar, Start, or edit-control menus.
   their text. The divider keeps the theme's separator margin below it, and the
   button highlight stays clear of the vertical separators.
 - Moving the mouse highlights the enabled button under the pointer.
-- Hovering over a recognized action displays its localized title.
+- Hovering over a button shows a tooltip when the action has a configured
+  `tip`, or its localized title when `toolbar.labels = false`.
 - Use Up/Down to select the toolbar row, Left/Right to choose a button, and
   Enter to invoke it.
 - Missing or disabled host actions are greyed out.

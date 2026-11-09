@@ -206,6 +206,29 @@ static void runToolbarTests()
 		toolbar.divider_height = dividerHeight;
 		check(toolbar.total_height() == 85, "Menu row must include the divider zone");
 	}
+
+	{
+		check(toolbar.labels, "Toolbar labels must be shown by default");
+		const int inset = MenuToolbar::padding, top = MenuToolbar::icon_top, icon = 20;
+		int compact = MenuToolbar::icon_only_row_height(inset, top, icon);
+		check(compact == 2 * inset + 2 * top + icon && compact < MenuToolbar::height,
+			"Hiding labels must shrink the toolbar row");
+		RECT row{0, 0, 600, compact};
+		auto button = MenuToolbar::button_rect(row, 0, inset, 80, false);
+		int labeled = MenuToolbar::icon_top_offset(button, top, icon, true);
+		int centered = MenuToolbar::icon_top_offset(button, top, icon, false);
+		check(labeled == button.top + top,
+			"Labeled buttons must keep the icon at its top margin");
+		check(centered == button.top + (button.bottom - button.top - icon) / 2 &&
+			centered == labeled,
+			"Icon-only buttons must center the icon within the compact row");
+		RECT tall{0, 0, 80, 100};
+		check(MenuToolbar::icon_top_offset(tall, top, icon, false) == 40,
+			"Icon-only buttons must center the icon in taller rows");
+		RECT tiny{0, 0, 80, 10};
+		check(MenuToolbar::icon_top_offset(tiny, top, icon, false) == tiny.top,
+			"Icon-only buttons must not push the icon above a short row");
+	}
 }
 
 static void runTests()
