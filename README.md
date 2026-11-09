@@ -111,7 +111,8 @@ action via `modify` takes precedence.
   `tip`, or its localized title when `toolbar.labels = false`.
 - Use Up/Down to select the toolbar row, Left/Right to choose a button, and
   Enter to invoke it.
-- Missing or disabled host actions are greyed out.
+- Missing or disabled host actions are hidden, so the toolbar only takes up
+  the space its usable buttons need. It is omitted when no action is usable.
 - Actions in the main menu take precedence over submenu actions, including
   Everything's folder menu in the Path column.
 - Matching native text commands are hidden while the toolbar is present.
@@ -181,7 +182,7 @@ package, not an MSI installer.
   applications that loaded an older DLL.
 - **A third-party menu remains unchanged:** check `exclude.where` and confirm
   the application uses Windows Shell context menus.
-- **Toolbar buttons are disabled:** check whether the host provides enabled
+- **Toolbar buttons are missing:** check whether the host provides enabled
   actions and whether NSS rules removed or relocated the original commands.
 - **Configuration fails to load:** check imports and `shell.log` next to the
   registered DLL.

@@ -2058,14 +2058,16 @@ namespace Nilesoft
 						self(self, item);
 			};
 			collect(collect, __system_menu_tree);
-			if(std::none_of(_toolbar_sources.begin(), _toolbar_sources.end(),
-				[](auto item) { return item != nullptr; }))
+			// Disabled and missing actions are hidden, so an all-disabled toolbar has nothing to show.
+			if(_toolbar.visible() == 0)
 				return;
 
 			for(int i = 0; i < MenuToolbar::count; ++i)
 			{
 				auto &icon = _toolbar_icons[i];
 				icon.image.destroy();
+				if(!_toolbar.buttons[i].enabled)
+					continue;
 				icon.ui = _toolbar_sources[i] && _toolbar_sources[i]->ui ?
 					_toolbar_sources[i]->ui : Initializer::get_muid(operations[i]);
 				icon.image.expr = _cache->get_image(operations[i]);
@@ -2101,6 +2103,8 @@ namespace Nilesoft
 						2 * dpi(MenuToolbar::label_inset);
 					for(int i = 0; i < MenuToolbar::count; ++i)
 					{
+						if(!_toolbar.buttons[i].enabled)
+							continue;
 						auto label = ToolbarLabel(i);
 						if(!label.empty())
 						{
@@ -2203,9 +2207,8 @@ namespace Nilesoft
 				return -1;
 			if(GET_HMENU(window) != _hMenu)
 				return -1;
-			return MenuToolbar::hit_test(MenuToolbar::content_rect(row, _toolbar.divider_height),
-				point, dpi(MenuToolbar::padding), _toolbar.width,
-				is_layoutRTL != 0);
+			return _toolbar.hit(MenuToolbar::content_rect(row, _toolbar.divider_height),
+				point, dpi(MenuToolbar::padding), is_layoutRTL != 0);
 		}
 
 		void ContextMenu::UpdateToolbarHover(HWND window)
@@ -2231,7 +2234,7 @@ namespace Nilesoft
 			if(::GetMenuItemRect(hwnd.owner, _hMenu, 0, &row))
 			{
 				Rect rect = MenuToolbar::button_rect(
-					MenuToolbar::content_rect(row, _toolbar.divider_height), hot,
+					MenuToolbar::content_rect(row, _toolbar.divider_height), _toolbar.slot(hot),
 					dpi(MenuToolbar::padding), _toolbar.width, is_layoutRTL != 0);
 				if(fallback)
 					_tip.show(label, 0, UINT16_MAX, rect);
@@ -2249,25 +2252,27 @@ namespace Nilesoft
 			const int separatorWidth = std::max<int>(1, dpi(1));
 			const int iconSize = std::min<int>(_theme.image.size, dpi(20));
 			const RECT content = MenuToolbar::content_rect(di->rcItem, _toolbar.divider_height);
+			const int visible = _toolbar.visible();
 			for(int i = 0; i < MenuToolbar::count; ++i)
 			{
-				Rect slot = MenuToolbar::button_rect(content, i, inset, buttonWidth,
+				const int position = _toolbar.slot(i);
+				if(position < 0)
+					continue;
+				Rect slot = MenuToolbar::button_rect(content, position, inset, buttonWidth,
 					is_layoutRTL != 0);
 				Rect rect = MenuToolbar::visual_rect(slot, dpi(MenuToolbar::button_gap));
 				bool focused = _toolbar.keyboard && (di->itemState & ODS_SELECTED) &&
 					i == _toolbar.selected;
-				bool selected = _toolbar.buttons[i].enabled && (i == _toolbar.hot || focused);
+				bool selected = i == _toolbar.hot || focused;
 				if(selected)
 					draw_rect(&dc, rect.point(), rect.size(), _theme.back.color.sel,
 						_theme.back.border.sel, _theme.back.radius);
-				auto color = !_toolbar.buttons[i].enabled ? _theme.text.color.nor_dis :
-					selected ? _theme.text.color.sel : _theme.text.color.nor;
+				auto color = selected ? _theme.text.color.sel : _theme.text.color.nor;
 				long iconTop = MenuToolbar::icon_top_offset(rect, dpi(MenuToolbar::icon_top),
 					iconSize, _toolbar.labels);
 				Rect imageRect{rect.left + (rect.width() - iconSize) / 2, iconTop,
 					rect.left + (rect.width() + iconSize) / 2, iconTop + iconSize};
-				DrawMenuImage(dc, _toolbar_icons[i].image, imageRect, color,
-					!_toolbar.buttons[i].enabled);
+				DrawMenuImage(dc, _toolbar_icons[i].image, imageRect, color, false);
 
 				auto label = _toolbar.labels ? ToolbarLabel(i) : string{};
 				if(!label.empty())
@@ -2282,9 +2287,9 @@ namespace Nilesoft
 				if(focused && !(di->itemState & ODS_NOFOCUSRECT))
 					::DrawFocusRect(di->hDC, &rect);
 
-				if(i < MenuToolbar::count - 1)
+				if(position < visible - 1)
 				{
-					const int boundary = MenuToolbar::separator_x(content, i, inset,
+					const int boundary = MenuToolbar::separator_x(content, position, inset,
 						buttonWidth, is_layoutRTL != 0);
 					const int x = is_layoutRTL ? boundary : boundary - separatorWidth;
 					draw_rect(&dc, {x, slot.top + dpi(4)},

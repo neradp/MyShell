@@ -62,7 +62,43 @@ namespace Nilesoft::Shell
 			return square > 0 ? square : labeledWidth;
 		}
 
-		int total_width(int inset) const { return 2 * inset + count * width; }
+		int total_width(int inset) const { return 2 * inset + visible() * width; }
+
+		// Disabled or missing actions are hidden, so drawn slots are a compacted view of the buttons.
+		int visible() const
+		{
+			int n = 0;
+			for(const auto &button : buttons)
+				if(button.enabled)
+					++n;
+			return n;
+		}
+
+		int slot(int index) const
+		{
+			if(index < 0 || index >= count || !buttons[index].enabled)
+				return -1;
+			int s = 0;
+			for(int i = 0; i < index; ++i)
+				if(buttons[i].enabled)
+					++s;
+			return s;
+		}
+
+		int at(int slot) const
+		{
+			if(slot < 0)
+				return -1;
+			for(int i = 0; i < count; ++i)
+				if(buttons[i].enabled && slot-- == 0)
+					return i;
+			return -1;
+		}
+
+		int hit(const RECT &row, POINT point, int inset, bool rtl) const
+		{
+			return at(hit_test(row, point, inset, width, rtl, visible()));
+		}
 
 		// Top of the icon inside a button; centered vertically when no label is drawn below it.
 		static int icon_top_offset(const RECT &button, int top, int iconSize, bool showLabels)
@@ -116,12 +152,13 @@ namespace Nilesoft::Shell
 				row.left + inset + offset + width, row.bottom - inset};
 		}
 
-		static int hit_test(const RECT &row, POINT point, int inset, int width, bool rtl)
+		static int hit_test(const RECT &row, POINT point, int inset, int width, bool rtl,
+			int visible = count)
 		{
-			if(width <= 0 || row.right - row.left < 2 * inset + count * width ||
+			if(width <= 0 || visible <= 0 || row.right - row.left < 2 * inset + visible * width ||
 				row.bottom - row.top <= 2 * inset)
 				return -1;
-			for(int i = 0; i < count; ++i)
+			for(int i = 0; i < visible; ++i)
 			{
 				auto rect = button_rect(row, i, inset, width, rtl);
 				if(::PtInRect(&rect, point))

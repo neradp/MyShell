@@ -82,6 +82,39 @@ static void runToolbarTests()
 	check(toolbar.hover(-1) && toolbar.hot == -1 && !toolbar.keyboard,
 		"Leaving the toolbar must clear hover without showing a keyboard focus frame");
 
+	// Buttons 0, 1 and 4 are enabled; 2 is disabled and 3 is missing, so only three slots are drawn.
+	check(toolbar.visible() == 3, "Disabled and missing actions must not occupy a slot");
+	check(toolbar.slot(0) == 0 && toolbar.slot(1) == 1 && toolbar.slot(4) == 2,
+		"Enabled buttons must be packed into consecutive slots");
+	check(toolbar.slot(2) == -1 && toolbar.slot(3) == -1 && toolbar.slot(-1) == -1 &&
+		toolbar.slot(MenuToolbar::count) == -1,
+		"Hidden or invalid buttons must not have a slot");
+	check(toolbar.at(0) == 0 && toolbar.at(1) == 1 && toolbar.at(2) == 4,
+		"Slots must map back to their enabled buttons");
+	check(toolbar.at(3) == -1 && toolbar.at(-1) == -1,
+		"Slots beyond the visible buttons must not map to a command");
+	toolbar.width = 40;
+	check(toolbar.total_width(4) == 2 * 4 + 3 * 40,
+		"Toolbar width must only account for visible buttons");
+	{
+		RECT row{0, 0, 600, 60};
+		auto third = MenuToolbar::button_rect(row, 2, 4, 40, false);
+		POINT center{(third.left + third.right) / 2, (third.top + third.bottom) / 2};
+		check(toolbar.hit(row, center, 4, false) == 4,
+			"Hit testing must resolve the drawn slot to the enabled button");
+		auto fourth = MenuToolbar::button_rect(row, 3, 4, 40, false);
+		POINT beyond{(fourth.left + fourth.right) / 2, (fourth.top + fourth.bottom) / 2};
+		check(toolbar.hit(row, beyond, 4, false) == -1,
+			"Space after the last visible button must not select a command");
+		check(MenuToolbar::hit_test(row, center, 4, 40, false, 3) == 2 &&
+			MenuToolbar::hit_test(row, beyond, 4, 40, false, 3) == -1,
+			"Slot hit testing must stop at the visible count");
+	}
+	MenuToolbar empty;
+	empty.buttons[2] = {103, false};
+	check(empty.visible() == 0 && empty.at(0) == -1 && empty.hit({0, 0, 600, 60}, {20, 20}, 4, false) == -1,
+		"A toolbar without enabled buttons must have nothing to show or hit");
+
 	HDC textDC = ::CreateCompatibleDC(nullptr);
 	check(textDC != nullptr, "Create toolbar label measurement DC");
 	for(int dpi : {96, 144, 192, 288})
