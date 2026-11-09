@@ -27,6 +27,7 @@ namespace Nilesoft::Shell
 		UINT id = 0;
 		int row_height = 0;
 		int divider_height = 0;
+		int width = 0;
 		int hot = -1;
 		int selected = -1;
 		bool enabled = false;
@@ -51,6 +52,17 @@ namespace Nilesoft::Shell
 		{
 			return 2 * inset + 2 * top + iconSize;
 		}
+
+		// Button width for the current mode: labels need the fixed width, icons alone fit a square.
+		static int button_width_for(int rowHeight, int inset, int labeledWidth, bool showLabels)
+		{
+			if(showLabels)
+				return labeledWidth;
+			const int square = rowHeight - 2 * inset;
+			return square > 0 ? square : labeledWidth;
+		}
+
+		int total_width(int inset) const { return 2 * inset + count * width; }
 
 		// Top of the icon inside a button; centered vertically when no label is drawn below it.
 		static int icon_top_offset(const RECT &button, int top, int iconSize, bool showLabels)

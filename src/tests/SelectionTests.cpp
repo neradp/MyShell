@@ -213,8 +213,22 @@ static void runToolbarTests()
 		int compact = MenuToolbar::icon_only_row_height(inset, top, icon);
 		check(compact == 2 * inset + 2 * top + icon && compact < MenuToolbar::height,
 			"Hiding labels must shrink the toolbar row");
+		int square = MenuToolbar::button_width_for(compact, inset, MenuToolbar::button_width, false);
+		check(square == compact - 2 * inset && square < MenuToolbar::button_width,
+			"Icon-only buttons must be square and narrower than labeled ones");
+		check(MenuToolbar::button_width_for(compact, inset, MenuToolbar::button_width, true) ==
+			MenuToolbar::button_width,
+			"Labeled buttons must keep the fixed width");
+		check(MenuToolbar::button_width_for(2 * inset, inset, MenuToolbar::button_width, false) ==
+			MenuToolbar::button_width,
+			"Collapsed rows must fall back to the labeled width");
 		RECT row{0, 0, 600, compact};
-		auto button = MenuToolbar::button_rect(row, 0, inset, 80, false);
+		auto button = MenuToolbar::button_rect(row, 0, inset, square, false);
+		check(button.right - button.left == button.bottom - button.top,
+			"Icon-only button slots must be square");
+		toolbar.width = square;
+		check(toolbar.total_width(inset) == 2 * inset + MenuToolbar::count * square,
+			"Toolbar width must follow the button width");
 		int labeled = MenuToolbar::icon_top_offset(button, top, icon, true);
 		int centered = MenuToolbar::icon_top_offset(button, top, icon, false);
 		check(labeled == button.top + top,

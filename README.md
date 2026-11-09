@@ -94,9 +94,10 @@ To show icons only, hide the labels under them:
 toolbar.labels = false
 ```
 
-Labels are shown by default. When they are hidden, the toolbar row shrinks to
-fit the icons and hovering over a button shows its label as a tooltip instead.
-A `tip` configured for the underlying action via `modify` takes precedence.
+Labels are shown by default. When they are hidden, the buttons become compact
+squares, the toolbar row shrinks to fit the icons, and hovering over a button
+shows its label as a tooltip instead. A `tip` configured for the underlying
+action via `modify` takes precedence.
 
 - Icons use NSS image definitions, theme colors, and `theme.image.size`.
 - Buttons have a fixed width and stay aligned to the menu's leading edge as
