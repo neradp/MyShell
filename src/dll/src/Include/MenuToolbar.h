@@ -54,12 +54,14 @@ namespace Nilesoft::Shell
 		}
 
 		// Button width for the current mode: labels need the fixed width, icons alone fit a square.
-		static int button_width_for(int rowHeight, int inset, int labeledWidth, bool showLabels)
+		// The slot includes the gap on both sides so the drawn highlight itself is square.
+		static int button_width_for(int rowHeight, int inset, int gap, int labeledWidth,
+			bool showLabels)
 		{
 			if(showLabels)
 				return labeledWidth;
 			const int square = rowHeight - 2 * inset;
-			return square > 0 ? square : labeledWidth;
+			return square > 0 ? square + 2 * gap : labeledWidth;
 		}
 
 		int total_width(int inset) const { return 2 * inset + visible() * width; }

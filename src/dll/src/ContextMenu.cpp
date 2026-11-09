@@ -2091,7 +2091,7 @@ namespace Nilesoft
 				_toolbar.row_height = MenuToolbar::icon_only_row_height(dpi(MenuToolbar::padding),
 					dpi(MenuToolbar::icon_top), std::min<int>(_theme.image.size, dpi(20)));
 				_toolbar.width = MenuToolbar::button_width_for(_toolbar.row_height,
-					dpi(MenuToolbar::padding), _toolbar.width, false);
+					dpi(MenuToolbar::padding), dpi(MenuToolbar::button_gap), _toolbar.width, false);
 			}
 			else if(HDC textDC = ::GetDC(hwnd.owner); textDC)
 			{

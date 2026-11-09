@@ -243,22 +243,27 @@ static void runToolbarTests()
 	{
 		check(toolbar.labels, "Toolbar labels must be shown by default");
 		const int inset = MenuToolbar::padding, top = MenuToolbar::icon_top, icon = 20;
+		const int gap = MenuToolbar::button_gap;
 		int compact = MenuToolbar::icon_only_row_height(inset, top, icon);
 		check(compact == 2 * inset + 2 * top + icon && compact < MenuToolbar::height,
 			"Hiding labels must shrink the toolbar row");
-		int square = MenuToolbar::button_width_for(compact, inset, MenuToolbar::button_width, false);
-		check(square == compact - 2 * inset && square < MenuToolbar::button_width,
-			"Icon-only buttons must be square and narrower than labeled ones");
-		check(MenuToolbar::button_width_for(compact, inset, MenuToolbar::button_width, true) ==
+		int square = MenuToolbar::button_width_for(compact, inset, gap, MenuToolbar::button_width, false);
+		check(square == compact - 2 * inset + 2 * gap && square < MenuToolbar::button_width,
+			"Icon-only slots must hold a square highlight plus its gaps and stay narrower than labeled ones");
+		check(MenuToolbar::button_width_for(compact, inset, gap, MenuToolbar::button_width, true) ==
 			MenuToolbar::button_width,
 			"Labeled buttons must keep the fixed width");
-		check(MenuToolbar::button_width_for(2 * inset, inset, MenuToolbar::button_width, false) ==
+		check(MenuToolbar::button_width_for(2 * inset, inset, gap, MenuToolbar::button_width, false) ==
 			MenuToolbar::button_width,
 			"Collapsed rows must fall back to the labeled width");
 		RECT row{0, 0, 600, compact};
 		auto button = MenuToolbar::button_rect(row, 0, inset, square, false);
-		check(button.right - button.left == button.bottom - button.top,
-			"Icon-only button slots must be square");
+		auto highlight = MenuToolbar::visual_rect(button, gap);
+		check(highlight.right - highlight.left == highlight.bottom - highlight.top,
+			"Icon-only button highlights must be square");
+		check(button.bottom - button.top == highlight.bottom - highlight.top &&
+			button.right - button.left == highlight.right - highlight.left + 2 * gap,
+			"Icon-only slots must only add the separator gaps around the square highlight");
 		toolbar.width = square;
 		check(toolbar.total_width(inset) == 2 * inset + toolbar.visible() * square,
 			"Toolbar width must follow the button width");
