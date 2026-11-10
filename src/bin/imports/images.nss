@@ -453,7 +453,27 @@ $svg_window_template='<path fill="@image.color1" d="M3.453 15C3.12 15 2.805 14.9
   </g>
 </svg>'
 
-@desktop, show_desktop, show_desktop_icons,show_the_desktop='<svg fill="none" viewBox="0 0 16 16">
+@explore_background, learn_about_this_background='<svg fill="none" viewBox="0 0 16 16">
+  <path fill="@color3" d="M3 2.5h10A1.5 1.5 0 0114.5 4v4.03A3.5 3.5 0 0012 8a4 4 0 00-3.74 5.5H3A1.5 1.5 0 011.5 12V4A1.5 1.5 0 013 2.5z"/>
+  <path fill="@image.color1" d="M3 2a2 2 0 00-2 2v8a2 2 0 002 2h5.26a3.5 3.5 0 01-.17-1H3a1 1 0 01-.7-.3l3.35-3.35a.5.5 0 01.7 0l1.3 1.3c.17-.3.38-.57.62-.8L6.85 8.15a1.5 1.5 0 00-2.12 0L2 10.88V4a1 1 0 011-1h10a1 1 0 011 1v4.03c.36.07.7.19 1 .35V4a2 2 0 00-2-2H3z"/>
+  <path fill="@image.color1" d="M10.5 4.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm0 1a.5.5 0 110 1 .5.5 0 010-1z"/>
+  <path fill="@image.color2" d="M12 9a3 3 0 102.08 5.15l1.56 1.56a.5.5 0 00.7-.7l-1.56-1.56A3 3 0 0012 9zm-2 3a2 2 0 114 0 2 2 0 01-4 0z"/>
+</svg>'
+
+@customize_menu='<svg fill="none" viewBox="0 0 16 16">
+  <path fill="@color3" d="M3 2.5h10A1.5 1.5 0 0114.5 4v3.45A4.5 4.5 0 008.03 13.5H3A1.5 1.5 0 011.5 12V4A1.5 1.5 0 013 2.5z"/>
+  <path fill="@image.color1" d="M3 2a2 2 0 00-2 2v8a2 2 0 002 2h5.03a4.5 4.5 0 01-.42-1H3a1 1 0 01-1-1V4a1 1 0 011-1h10a1 1 0 011 1v3.03a4.5 4.5 0 011 .42V4a2 2 0 00-2-2H3z"/>
+  <path fill="@image.color1" d="M4 5.5a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zM4 8a.5.5 0 01.5-.5h4a.5.5 0 010 1h-4A.5.5 0 014 8zm0 2.5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5z"/>
+  <path fill="@image.color2" d="M12 9.5a.5.5 0 01.49.4l.1.52c.2.07.38.17.55.3l.5-.18a.5.5 0 01.6.22l.5.86a.5.5 0 01-.11.63l-.4.34a2 2 0 010 .62l.4.34a.5.5 0 01.11.63l-.5.86a.5.5 0 01-.6.22l-.5-.18c-.17.13-.36.23-.55.3l-.1.52a.5.5 0 01-.49.4h-1a.5.5 0 01-.49-.4l-.1-.52a2 2 0 01-.55-.3l-.5.18a.5.5 0 01-.6-.22l-.5-.86a.5.5 0 01.11-.63l.4-.34a2 2 0 010-.62l-.4-.34a.5.5 0 01-.11-.63l.5-.86a.5.5 0 01.6-.22l.5.18c.17-.13.36-.23.55-.3l.1-.52A.5.5 0 0111 9.5h1zm-.5 2.5a1 1 0 100 2 1 1 0 000-2z"/>
+</svg>'
+
+@app_extensions, more_extensions, manage_extensions='<svg fill="none" viewBox="0 0 16 16">
+  <path fill="@color3" d="M3 1.5h10A1.5 1.5 0 0114.5 3v4.5H14V10a1.5 1.5 0 00-1.5-1.5h-1A1.5 1.5 0 0010 10v.5h-.5A1.5 1.5 0 008 12v2.5H3A1.5 1.5 0 011.5 13V3A1.5 1.5 0 013 1.5z"/>
+  <path fill="@image.color1" d="M3 1a2 2 0 00-2 2v10a2 2 0 002 2h4.5a.5.5 0 000-1H3a1 1 0 01-1-1V3a1 1 0 011-1h10a1 1 0 011 1v4.5a.5.5 0 001 0V3a2 2 0 00-2-2H3z"/>
+  <path fill="@image.color2" d="M11.5 8.5a1.5 1.5 0 00-1.5 1.5v.5H9.5A1.5 1.5 0 008 12v2.5a.5.5 0 00.5.5H11v-.5a1 1 0 112 0v.5h2.5a.5.5 0 00.5-.5V12a1.5 1.5 0 00-1.5-1.5H14V10a1.5 1.5 0 00-1.5-1.5h-1zm-.5 1.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1.5h1.5a.5.5 0 01.5.5v2h-1a2 2 0 10-4 0H9v-2a.5.5 0 01.5-.5H11V10z"/>
+</svg>'
+
+@desktop, show_desktop, show_desktop_icons,show_the_desktop, desktop_create_shortcut='<svg fill="none" viewBox="0 0 16 16">
   <g clip-path="url(#clip0)">
     <path fill="@color3" d="M.53 6h1.59a4.00 4.00 0 007.74 0H11.5v-.00a1.50 1.50 0 001.44-1.89 6.60 6.60 0 00-.67-1.59H13A2.5 2.5 0 0115.5 5v6a2.5 2.5 0 01-2.5 2.5H3A2.5 2.5 0 01.5 11V6h.03z"/>
     <path fill="@image.color1" d="M1 6H.53A1.5 1.5 0 010 5.91V11a3 3 0 003 3h10a3 3 0 003-3V5a3 3 0 00-3-3h-1.05c.22.31.42.64.59 1H13a2 2 0 012 2v5H1V6zm2 7a2 2 0 01-2-2h10.5a.5.5 0 100 1 .5.5 0 000-1h2a.5.5 0 100 1 .5.5 0 000-1H15a2 2 0 01-2 2H3z"/>
@@ -498,13 +518,13 @@ $svg_window_template='<path fill="@image.color1" d="M3.453 15C3.12 15 2.805 14.9
   <path fill="@image.color1" d="M8 4C4.75 4 2 6.37 1.22 9.62a.5.5 0 01-.97-.23C1.12 5.74 4.24 3 8 3c3.75 0 6.87 2.73 7.75 6.38a.5.5 0 01-.97.23C13.99 6.36 11.23 4 8 4z"/>
 </svg>'
 
-@compressed='<svg fill="none" viewBox="0 0 16 16">
+@compressed, compress_to, compress_to_zip, archive_zip, archive_7z, archive_tar='<svg fill="none" viewBox="0 0 16 16">
   <path fill="@color3" d="M5.5 1.5h-3a2 2 0 00-2 2v9a2 2 0 002 2h11a2 2 0 002-2v-7a2 2 0 00-2-2H8.75a1.5 1.5 0 01-1.2-.6l-.45-.6a2 2 0 00-1.6-.8z"/>
   <path fill="@image.color1" d="M2.5 1A2.5 2.5 0 000 3.5v9A2.5 2.5 0 002.5 15h11a2.5 2.5 0 002.5-2.5v-7A2.5 2.5 0 0013.5 3H8.25L7.5 2a2.5 2.5 0 00-2-1h-3zM1 3.5A1.5 1.5 0 012.5 2h3a1.5 1.5 0 011.2.6l.58.77-.55.37A1.5 1.5 0 015.89 4H1v-.5zM1 5h4.89a2.5 2.5 0 001.38-.42l.87-.58H13.5A1.5 1.5 0 0115 5.5v7a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 011 12.5V5z"/>
   <path fill="@image.color2" d="M10 4a1 1 0 011-1h1a1 1 0 011 1v2a1 1 0 01-1 1v3h.5a.5.5 0 010 1H12v3.5a.5.5 0 01-1 0V13h-.5a.5.5 0 010-1h.5V9h-.5a.5.5 0 010-1h.5V7a1 1 0 01-1-1V4zm2 0h-1v2h1V4z"/>
 </svg>'
 
-@more_options='<svg fill="none" viewBox="0 0 16 16">
+@more_options, more_actions, other_actions='<svg fill="none" viewBox="0 0 16 16">
   <path fill="@color3" d="M5 8.5H1.5V12A2.5 2.5 0 004 14.5h3.5V11A2.5 2.5 0 005 8.5z"/>
   <path fill="@image.color1" d="M2 4a2 2 0 012-2h2.5a.5.5 0 000-1H4a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3V9.5a.5.5 0 00-1 0V12a2 2 0 01-2 2H8v-3a3 3 0 00-3-3H2V4zm0 5h3a2 2 0 012 2v3H4a2 2 0 01-2-2V9z"/>
   <path fill="@image.color2" d="M9.5 1a.5.5 0 000 1h3.79L9.14 6.14a.5.5 0 10.70.70L14 2.70V6.5a.5.5 0 001 0v-5a.5.5 0 00-.5-.5h-5z"/>

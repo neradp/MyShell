@@ -751,13 +751,43 @@ namespace Nilesoft
 			// Windows 11 25H2+ context menu: desktop background commands moved to shell32 with new titles.
 			ldstr(shell32, {
 				{IDENT_ID_EXPLORE_BACKGROUND, 52129},
+				{IDENT_ID_LEARN_ABOUT_THIS_BACKGROUND, 51937},
 			});
 			ldstr_alias(shell32, {
 				{IDENT_ID_NEXT_DESKTOP_BACKGROUND, 52130},
 				{IDENT_ID_NEXT_DESKTOP_BACKGROUND, 51920},
+				{IDENT_ID_NEXT_DESKTOP_BACKGROUND, 51954},
+				{IDENT_ID_EXPLORE_BACKGROUND, 51953},
+				{IDENT_ID_LEARN_ABOUT_THIS_BACKGROUND, 51921},
 			});
-			ldstr(L"Windows.UI.FileExplorer.dll", {
+
+			// Windows 11 25H2+ context menu items hosted by the new File Explorer UI.
+			auto fileexplorer = L"Windows.UI.FileExplorer.dll";
+			ldstr(fileexplorer, {
 				{IDENT_ID_CUSTOMIZE_MENU, 52483},
+				{IDENT_ID_APP_EXTENSIONS, 52480},
+				{IDENT_ID_MORE_EXTENSIONS, 52481},
+				{IDENT_ID_MANAGE_EXTENSIONS, 52482},
+				{IDENT_ID_COMPRESS_TO, 52484},
+				{IDENT_ID_COMPRESS_TO_ZIP, 51840},
+				{IDENT_ID_ARCHIVE_ZIP, 51798},
+				{IDENT_ID_ARCHIVE_7Z, 51799},
+				{IDENT_ID_ARCHIVE_TAR, 51800},
+				{IDENT_ID_DESKTOP_CREATE_SHORTCUT, 52017},
+				{IDENT_ID_MORE_ACTIONS, 51968},
+				{IDENT_ID_OTHER_ACTIONS, 51952},
+				{IDENT_ID_ORGANIZE, 51920},
+				{IDENT_ID_CLOUD_STORAGE, 51936},
+				{IDENT_ID_COMPACT_VIEW, 51808},
+				{IDENT_ID_DOCUMENTS, 52016},
+			});
+			ldstr_alias(fileexplorer, {
+				{IDENT_ID_COMPRESS_TO_ZIP, 51793},
+				{IDENT_ID_COMPRESSED, 52018},
+				{IDENT_ID_MORE_OPTIONS, 51841},
+				{IDENT_ID_MORE_OPTIONS, 51801},
+				{IDENT_ID_SHARE, 51888},
+				{IDENT_ID_SEND_TO, 52000},
 			});
 
 			ldstr(L"fvecpl.dll", {
