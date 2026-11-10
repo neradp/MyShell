@@ -101,8 +101,9 @@ action via `modify` takes precedence.
 
 - Icons use NSS image definitions, theme colors, and `theme.image.size`.
 - Buttons have a fixed width and stay aligned to the menu's leading edge as
-  other items make the menu wider. Labels appear under each icon, with vertical
-  separators between buttons and a horizontal divider below the toolbar. Labels
+  other items make the menu wider. Labels appear under each icon in a slightly
+  smaller font, with vertical separators between buttons and a horizontal
+  divider below the toolbar. Labels
   have room around the separators and wrap when needed; the row grows to fit
   their text. The divider keeps the theme's separator margin below it, and the
   button highlight stays clear of the vertical separators.

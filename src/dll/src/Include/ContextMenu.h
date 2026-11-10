@@ -552,6 +552,7 @@ plutovg_move_to(pluto, start.x, start.y);
 
 			struct {
 				HFONT handle{};
+				HFONT label{};
 				LOGFONTW menu{};
 				Font icon;
 				Font icon10;

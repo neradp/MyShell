@@ -16,6 +16,13 @@ namespace Nilesoft::Shell
 		static constexpr int icon_top = 8;
 		static constexpr int label_gap = 3;
 		static constexpr int label_bottom = 4;
+		// Toolbar labels use a smaller variant of the menu font.
+		static constexpr int label_font_percent = 85;
+		static int label_font_height(int menuHeight)
+		{
+			const int height = ::MulDiv(menuHeight, label_font_percent, 100);
+			return height != 0 ? height : menuHeight;
+		}
 		static constexpr UINT label_format = DT_CENTER | DT_WORDBREAK | DT_EDITCONTROL | DT_HIDEPREFIX;
 		struct Button
 		{

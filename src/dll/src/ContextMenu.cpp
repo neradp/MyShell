@@ -2095,7 +2095,7 @@ namespace Nilesoft
 			}
 			else if(HDC textDC = ::GetDC(hwnd.owner); textDC)
 			{
-				HGDIOBJ oldFont = ::SelectObject(textDC, font.handle);
+				HGDIOBJ oldFont = ::SelectObject(textDC, font.label ? font.label : font.handle);
 				if(oldFont && oldFont != HGDI_ERROR)
 				{
 					int maxLabelHeight = 0;
@@ -2280,7 +2280,7 @@ namespace Nilesoft
 					const int labelInset = dpi(MenuToolbar::label_inset);
 					Rect labelRect{slot.left + labelInset, imageRect.bottom + dpi(MenuToolbar::label_gap),
 						slot.right - labelInset, rect.bottom - dpi(MenuToolbar::label_bottom)};
-					draw_string(di->hDC, font.handle, &labelRect, color, label,
+					draw_string(di->hDC, font.label ? font.label : font.handle, &labelRect, color, label,
 						label.length<int>(), MenuToolbar::label_format);
 				}
 
@@ -4180,6 +4180,14 @@ namespace Nilesoft
 
 			font.handle = ::CreateFontIndirectW(&_theme.font);
 
+			{
+				LOGFONTW label = _theme.font;
+				label.lfHeight = MenuToolbar::label_font_height(_theme.font.lfHeight);
+				font.label = ::CreateFontIndirectW(&label);
+				if(!font.label)
+					_log.warning(L"Cannot create context-menu toolbar label font.");
+			}
+
 			font.icon10.Name = font.icon.Name;
 			font.icon10.Size =int( _theme.image.size * 0.70);
 			font.icon10.Quality = CLEARTYPE_QUALITY;
@@ -4886,6 +4894,11 @@ namespace Nilesoft
 				if(font.handle) {
 					::DeleteObject(font.handle);
 					font.handle = nullptr;
+				}
+
+				if(font.label) {
+					::DeleteObject(font.label);
+					font.label = nullptr;
 				}
 
 				if(hCursor)

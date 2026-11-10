@@ -242,6 +242,10 @@ static void runToolbarTests()
 
 	{
 		check(toolbar.labels, "Toolbar labels must be shown by default");
+		check(MenuToolbar::label_font_height(-20) == -17 && MenuToolbar::label_font_height(20) == 17,
+			"Toolbar labels must use a smaller font than menu items");
+		check(MenuToolbar::label_font_height(-1) == -1 && MenuToolbar::label_font_height(0) == 0,
+			"Tiny menu fonts must not collapse the label font to nothing");
 		const int inset = MenuToolbar::padding, top = MenuToolbar::icon_top, icon = 20;
 		const int gap = MenuToolbar::button_gap;
 		int compact = MenuToolbar::icon_only_row_height(inset, top, icon);
