@@ -278,6 +278,36 @@ namespace Nilesoft
 					::FreeLibrary(hModule);
 			};
 
+			// Attach additional localized titles to an already registered ident so renamed
+			// native commands (newer Windows builds) keep their images and id.* bindings.
+			auto ldstr_alias = [&](const wchar_t *dll, std::initializer_list<MUID> list)
+			{
+				auto hModule = ::GetModuleHandleW(dll);
+				bool load_as_dynamic = false;
+				if(!hModule)
+				{
+					hModule = ::LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					load_as_dynamic = true;
+				}
+				if(!hModule)
+					return;
+				for(auto &it : list)
+				{
+					auto found = MAP_MUID.find(it.id);
+					if(found == MAP_MUID.end())
+						continue;
+					string alias;
+					auto len = ::LoadStringW(hModule, it.res_id, alias.buffer(MAX_PATH), MAX_PATH);
+					if(len > 0)
+					{
+						alias.release(len);
+						found->second.add_alias(alias);
+					}
+				}
+				if(load_as_dynamic)
+					::FreeLibrary(hModule);
+			};
+
 			auto parse_menu = [&](HMODULE hModule, uint32_t menu_id,
 								 std::initializer_list<MUID> list)
 			{
@@ -717,6 +747,18 @@ namespace Nilesoft
 				{IDENT_ID_SET_AS_DESKTOP_BACKGROUND, 417},
 				{IDENT_ID_NEXT_DESKTOP_BACKGROUND, 416}
 			 });
+
+			// Windows 11 25H2+ context menu: desktop background commands moved to shell32 with new titles.
+			ldstr(shell32, {
+				{IDENT_ID_EXPLORE_BACKGROUND, 52129},
+			});
+			ldstr_alias(shell32, {
+				{IDENT_ID_NEXT_DESKTOP_BACKGROUND, 52130},
+				{IDENT_ID_NEXT_DESKTOP_BACKGROUND, 51920},
+			});
+			ldstr(L"Windows.UI.FileExplorer.dll", {
+				{IDENT_ID_CUSTOMIZE_MENU, 52483},
+			});
 
 			ldstr(L"fvecpl.dll", {
 				{IDENT_ID_TURN_ON_BITLOCKER, 1140},

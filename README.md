@@ -20,6 +20,10 @@ integration and an optional Windows 11-style file-action toolbar.
   separators; hidden labels become tooltips.
 - Use the host's original file commands, clipboard behavior, and confirmation
   dialogs.
+- Recognize the renamed desktop commands of the Windows 11 25H2+ context menu:
+  `id.next_desktop_background` also matches the shortened title, and the new
+  `id.explore_background` and `id.customize_menu` identifiers accept images
+  and rules like other native commands.
 
 Third-party integration depends on the host application, its menu implementation,
 and the active configuration. Native tests do not replace interactive testing

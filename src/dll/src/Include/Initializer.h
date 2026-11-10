@@ -655,7 +655,7 @@ namespace Nilesoft
 			{
 				for(auto &it : MAP_MUID)
 				{
-					if(it.first == hash or it.second.hash == hash)
+					if(it.first == hash or it.second.matches(hash))
 						return &it.second;
 				}
 				return nullptr;

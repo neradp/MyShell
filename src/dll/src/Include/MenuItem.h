@@ -913,6 +913,8 @@ namespace Nilesoft
 			string title;
 			string title_normalize;
 			uint32_t hash = 0;
+			// Normalized hashes of alternative localized titles (e.g. renamed by newer Windows builds).
+			std::vector<uint32_t> aliases;
 			Expression *image{};
 
 			std::vector<uint32_t> ids;
@@ -921,6 +923,26 @@ namespace Nilesoft
 			{
 				if(!title.empty())
 					hash = MenuItemInfo::normalize(title, &title_normalize);
+			}
+
+			bool matches(uint32_t value) const
+			{
+				if(hash == value)
+					return true;
+				for(auto alias : aliases)
+					if(alias == value)
+						return true;
+				return false;
+			}
+
+			void add_alias(string alias_title)
+			{
+				if(alias_title.empty())
+					return;
+				string normalized;
+				auto value = MenuItemInfo::normalize(alias_title, &normalized);
+				if(value && value != hash)
+					aliases.push_back(value);
 			}
 
 			string get_title() const 
