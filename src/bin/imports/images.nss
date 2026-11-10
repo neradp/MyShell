@@ -138,7 +138,7 @@ $svg_window_template='<path fill="@image.color1" d="M3.453 15C3.12 15 2.805 14.9
   <path fill="@image.color2" d="M8 1a1.5 1.5 0 00-1.5 1.5h-1a2.5 2.5 0 015 0h-1A1.5 1.5 0 008 1zM6.5 6a.5.5 0 01.5.5v5a.5.5 0 01-1 0v-5a.5.5 0 01.5-.5zM9.5 6a.5.5 0 01.5.5v5a.5.5 0 01-1 0v-5a.5.5 0 01.5-.5z"/>
 </svg>'
 
-@sort_by='<svg fill="none" viewBox="0 0 16 16">
+@sort_by, organize='<svg fill="none" viewBox="0 0 16 16">
   <g clip-path="url(#clip0)">
     <path fill="@image.color2" fill-rule="evenodd" d="M11.5 2a.5.5 0 01.5.5v11a.5.5 0 01-1 0v-11a.5.5 0 01.5-.5z" clip-rule="evenodd"/>
     <path fill="@image.color2" fill-rule="evenodd" d="M7.14 9.14a.5.5 0 01.70 0l3.64 3.64 3.64-3.64a.5.5 0 01.70.70l-4 4a.5.5 0 01-.70 0l-4-4a.5.5 0 010-.70z" clip-rule="evenodd"/>
@@ -261,7 +261,7 @@ $svg_window_template='<path fill="@image.color1" d="M3.453 15C3.12 15 2.805 14.9
   <path fill="@image.color1" d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v6a1 1 0 001 1h8a1 1 0 001-1V4a1 1 0 00-1-1H4zM2.5 13a.5.5 0 000 1h11a.5.5 0 000-1h-11z"/>
 </svg>'
 
-@list='<svg fill="none" viewBox="0 0 16 16">
+@list, compact_view='<svg fill="none" viewBox="0 0 16 16">
   <path fill="@image.color1" d="M.5 6a.5.5 0 000 1h6a.5.5 0 000-1h-6zM9.5 6a.5.5 0 000 1h6a.5.5 0 000-1h-6zM.5 12a.5.5 0 000 1h6a.5.5 0 000-1h-6zM9.5 12a.5.5 0 000 1h6a.5.5 0 000-1h-6zM.5 9a.5.5 0 000 1h6a.5.5 0 000-1h-6zM9.5 9a.5.5 0 000 1h6a.5.5 0 000-1h-6zM.5 3a.5.5 0 000 1h6a.5.5 0 000-1h-6zM9.5 3a.5.5 0 000 1h6a.5.5 0 000-1h-6z"/>
 </svg>'
 
@@ -471,6 +471,18 @@ $svg_window_template='<path fill="@image.color1" d="M3.453 15C3.12 15 2.805 14.9
   <path fill="@color3" d="M3 1.5h10A1.5 1.5 0 0114.5 3v4.5H14V10a1.5 1.5 0 00-1.5-1.5h-1A1.5 1.5 0 0010 10v.5h-.5A1.5 1.5 0 008 12v2.5H3A1.5 1.5 0 011.5 13V3A1.5 1.5 0 013 1.5z"/>
   <path fill="@image.color1" d="M3 1a2 2 0 00-2 2v10a2 2 0 002 2h4.5a.5.5 0 000-1H3a1 1 0 01-1-1V3a1 1 0 011-1h10a1 1 0 011 1v4.5a.5.5 0 001 0V3a2 2 0 00-2-2H3z"/>
   <path fill="@image.color2" d="M11.5 8.5a1.5 1.5 0 00-1.5 1.5v.5H9.5A1.5 1.5 0 008 12v2.5a.5.5 0 00.5.5H11v-.5a1 1 0 112 0v.5h2.5a.5.5 0 00.5-.5V12a1.5 1.5 0 00-1.5-1.5H14V10a1.5 1.5 0 00-1.5-1.5h-1zm-.5 1.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1.5h1.5a.5.5 0 01.5.5v2h-1a2 2 0 10-4 0H9v-2a.5.5 0 01.5-.5H11V10z"/>
+</svg>'
+
+@documents='<svg fill="none" viewBox="0 0 16 16">
+  <path fill="@color3" d="M4 1.5h5.5L13.5 5.5V13A1.5 1.5 0 0112 14.5H4A1.5 1.5 0 012.5 13V3A1.5 1.5 0 014 1.5z"/>
+  <path fill="@image.color1" d="M4 1a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V5.41a1.5 1.5 0 00-.44-1.06L10.65 1.44A1.5 1.5 0 009.59 1H4zm-1 2a1 1 0 011-1h5v3.5A1.5 1.5 0 0010.5 7H13v6a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm7 .21L12.79 6H10.5a.5.5 0 01-.5-.5V3.21z"/>
+  <path fill="@image.color2" d="M5 9.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5zm0 2a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3a.5.5 0 01-.5-.5z"/>
+</svg>'
+
+@cloud_storage='<svg fill="none" viewBox="0 0 16 16">
+  <path fill="@color3" d="M4.5 13.5A3 3 0 014 7.54 4.5 4.5 0 0112.7 6.2 3.5 3.5 0 0112.5 13.5h-8z"/>
+  <path fill="@image.color1" d="M8.5 2A4.5 4.5 0 004.1 5.56 3.5 3.5 0 004.5 12.5h1.25a.5.5 0 000-1H4.5a2.5 2.5 0 01-.12-5 .5.5 0 00.48-.42A3.5 3.5 0 0111.8 6.2a.5.5 0 00.5.3h.2a2.5 2.5 0 010 5h-1.25a.5.5 0 000 1h1.25a3.5 3.5 0 00.5-6.96A4.5 4.5 0 008.5 2z"/>
+  <path fill="@image.color2" d="M8.35 7.15a.5.5 0 01.7 0l2 2a.5.5 0 01-.7.7L9.2 8.7v5.8a.5.5 0 01-1 0V8.7L7.05 9.85a.5.5 0 11-.7-.7l2-2z"/>
 </svg>'
 
 @desktop, show_desktop, show_desktop_icons,show_the_desktop, desktop_create_shortcut='<svg fill="none" viewBox="0 0 16 16">
